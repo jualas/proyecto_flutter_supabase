@@ -63,106 +63,106 @@ class _StudentDashboardState extends State<StudentDashboard> {
   }
 
   Widget _buildDashboardContent() => SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Información del usuario
-          _buildUserInfo(),
-          const SizedBox(height: 24),
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Información del usuario
+        _buildUserInfo(),
+        const SizedBox(height: 24),
 
-          // Resumen de estadísticas
-          _buildStatistics(),
-          const SizedBox(height: 24),
+        // Resumen de estadísticas
+        _buildStatistics(),
+        const SizedBox(height: 24),
 
-          // Anteproyectos
-          _buildAnteprojectsSection(),
-          const SizedBox(height: 24),
+        // Anteproyectos
+        _buildAnteprojectsSection(),
+        const SizedBox(height: 24),
 
-          // Tareas pendientes
-          _buildTasksSection(),
-          const SizedBox(height: 24),
+        // Tareas pendientes
+        _buildTasksSection(),
+        const SizedBox(height: 24),
 
-          // Información del servidor
-          _buildServerInfo(),
-        ],
-      ),
-    );
+        // Información del servidor
+        _buildServerInfo(),
+      ],
+    ),
+  );
 
   Widget _buildUserInfo() => Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Color(AppConfig.platformColor),
-              child: Text(
-                widget.user.email?.substring(0, 1).toUpperCase() ?? 'E',
-                style: const TextStyle(fontSize: 24, color: Colors.white),
-              ),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Color(AppConfig.platformColor),
+            child: Text(
+              widget.user.email?.substring(0, 1).toUpperCase() ?? 'E',
+              style: const TextStyle(fontSize: 24, color: Colors.white),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.user.email ?? 'Estudiante',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.user.email ?? 'Estudiante',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(
-                    'ID: ${widget.user.id}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Text(
+                  'ID: ${widget.user.id}',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Text(
+                  'Rol: Estudiante',
+                  style: TextStyle(
+                    color: Color(AppConfig.platformColor),
+                    fontWeight: FontWeight.w500,
                   ),
-                  Text(
-                    'Rol: Estudiante',
-                    style: TextStyle(
-                      color: Color(AppConfig.platformColor),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
+    ),
+  );
 
   Widget _buildStatistics() => Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            'Anteproyectos',
-            '0',
-            Icons.description,
-            Colors.blue,
-          ),
+    children: [
+      Expanded(
+        child: _buildStatCard(
+          'Anteproyectos',
+          '0',
+          Icons.description,
+          Colors.blue,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildStatCard(
-            'Tareas Pendientes',
-            '0',
-            Icons.pending,
-            Colors.orange,
-          ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: _buildStatCard(
+          'Tareas Pendientes',
+          '0',
+          Icons.pending,
+          Colors.orange,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildStatCard(
-            'Completadas',
-            '0',
-            Icons.check_circle,
-            Colors.green,
-          ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: _buildStatCard(
+          'Completadas',
+          '0',
+          Icons.check_circle,
+          Colors.green,
         ),
-      ],
-    );
+      ),
+    ],
+  );
 
   Widget _buildStatCard(
     String title,
