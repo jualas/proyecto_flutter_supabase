@@ -32,6 +32,13 @@ class AppConfig {
       environment: 'ngrok',
       debugMode: true,
     ),
+    'external': BackendConfig(
+      supabaseUrl: 'http://152.89.182.29:54321',
+      supabaseAnonKey: 'SUPABASE_JWT_REMOVED',
+      supabaseServiceKey: 'SUPABASE_JWT_REMOVED',
+      environment: 'external',
+      debugMode: true,
+    ),
     'production': BackendConfig(
       supabaseUrl: 'https://tu-dominio.com:54321',
       supabaseAnonKey: 'SUPABASE_JWT_REMOVED',
@@ -54,7 +61,7 @@ class AppConfig {
   static bool get debugMode => current.debugMode;
   
   /// Verifica si estamos en modo de desarrollo
-  static bool get isDevelopment => environment == 'local' || environment == 'network' || environment == 'ngrok';
+  static bool get isDevelopment => environment == 'local' || environment == 'network' || environment == 'ngrok' || environment == 'external';
   
   /// Verifica si estamos en modo de producción
   static bool get isProduction => environment == 'production';
@@ -94,6 +101,7 @@ Is Production: $isProduction
     if (environment == 'network') return 'Windows (Network)';
     if (environment == 'local') return 'Windows (Local)';
     if (environment == 'ngrok') return 'Windows (Ngrok)';
+    if (environment == 'external') return 'Windows (External Router)';
     return 'Windows';
   }
 
@@ -101,6 +109,7 @@ Is Production: $isProduction
   static String _getStudioUrl() {
     if (environment == 'cloudflare') return 'https://studio.fct.jualas.es';
     if (environment == 'network') return 'http://192.168.1.9:54323';
+    if (environment == 'external') return 'http://152.89.182.29:54323';
     if (environment == 'local') return 'http://127.0.0.1:54323';
     return 'http://127.0.0.1:54323';
   }
@@ -109,6 +118,7 @@ Is Production: $isProduction
   static String _getInbucketUrl() {
     if (environment == 'cloudflare') return 'https://email.fct.jualas.es';
     if (environment == 'network') return 'http://192.168.1.9:54324';
+    if (environment == 'external') return 'http://152.89.182.29:54324';
     if (environment == 'local') return 'http://127.0.0.1:54324';
     return 'http://127.0.0.1:54324';
   }
@@ -118,6 +128,7 @@ Is Production: $isProduction
     if (environment == 'network') return 0xFF4CAF50; // Green for network
     if (environment == 'local') return 0xFF2196F3; // Blue for local
     if (environment == 'ngrok') return 0xFFFF9800; // Orange for ngrok
+    if (environment == 'external') return 0xFF9C27B0; // Purple for external router
     return 0xFF2196F3; // Default blue
   }
 
@@ -135,6 +146,7 @@ Is Production: $isProduction
     if (environment == 'network') return '🌐';
     if (environment == 'local') return '🖥️';
     if (environment == 'ngrok') return '🔗';
+    if (environment == 'external') return '📡';
     return '🖥️';
   }
 
