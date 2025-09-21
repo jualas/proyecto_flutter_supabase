@@ -10,6 +10,7 @@ class AppConfig {
     'local': BackendConfig(
       supabaseUrl: 'http://localhost:54321',
       supabaseAnonKey: 'SUPABASE_JWT_REMOVED',
+      supabaseServiceKey: 'SUPABASE_JWT_REMOVED',
       environment: 'local',
       debugMode: true,
     ),
@@ -39,6 +40,13 @@ class AppConfig {
       environment: 'external',
       debugMode: true,
     ),
+    'cloud': BackendConfig(
+      supabaseUrl: 'https://zkririyknhlwoxhsoqih.supabase.co',
+      supabaseAnonKey: 'SUPABASE_JWT_REMOVED',
+      supabaseServiceKey: null, // No necesitamos service key para la app
+      environment: 'cloud',
+      debugMode: true,
+    ),
     'production': BackendConfig(
       supabaseUrl: 'https://tu-dominio.com:54321',
       supabaseAnonKey: 'SUPABASE_JWT_REMOVED',
@@ -49,7 +57,7 @@ class AppConfig {
   
   /// Obtiene la configuración actual basada en la variable de entorno
   static BackendConfig get current {
-    const String env = String.fromEnvironment('ENVIRONMENT', defaultValue: 'network');
+    const String env = String.fromEnvironment('ENVIRONMENT', defaultValue: 'cloud');
     return _configs[env] ?? _configs['network']!;
   }
   
@@ -173,9 +181,9 @@ Is Production: $isProduction
     'student': 'student.test@alumno.cifpcarlos3.es',
     'tutor': 'tutor.test@cifpcarlos3.es',
     'admin': 'admin.test@cifpcarlos3.es',
-    'student_password': 'student123',
-    'tutor_password': 'tutor123',
-    'admin_password': 'admin123',
+    'student_password': 'password123',
+    'tutor_password': 'password123',
+    'admin_password': 'password123',
     'old_student': 'test.student@alumno.cifpcarlos3.es',
     'old_password': 'test123',
   };
