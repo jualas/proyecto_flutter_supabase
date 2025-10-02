@@ -1,103 +1,24 @@
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
 
 /// Configuración simplificada de la aplicación
-///
-/// Usa siempre Supabase en la nube para evitar problemas de detección de entorno
 class AppConfig {
-  // Configuración única (siempre cloud)
-  static const String _supabaseUrl = 'https://zkririyknhlwoxhsoqih.supabase.co';
-  static const String _supabaseAnonKey =
+  // Configuración de Supabase
+  static const String supabaseUrl = 'https://zkririyknhlwoxhsoqih.supabase.co';
+  static const String supabaseAnonKey =
       'SUPABASE_JWT_REMOVED';
-  static const String _environment = 'cloud';
-  static const bool _debugMode = kDebugMode; // Usar el valor real de kDebugMode
-  static const String _platformName = 'Flutter Web';
-
-  // Detectar el entorno de acceso
-  static bool get isInternalNetwork {
-    if (kIsWeb) {
-      try {
-        final hostname = html.window.location.hostname;
-        if (hostname == null) return false; // Manejo de null safety
-
-        // Detectar si es acceso interno (localhost, IP local, o dominio interno)
-        return hostname == 'localhost' ||
-            hostname == '127.0.0.1' ||
-            hostname.startsWith('192.168.') ||
-            hostname.startsWith('10.') ||
-            hostname.startsWith('172.') ||
-            hostname.contains('.local');
-      } catch (e) {
-        return false;
-      }
-    }
-    return true; // En otras plataformas, asumir red interna
-  }
-
-  static bool get isExternalDomain {
-    if (kIsWeb) {
-      try {
-        final hostname = html.window.location.hostname;
-        if (hostname == null) return false; // Manejo de null safety
-
-        // Detectar si es acceso externo por dominio
-        return hostname == 'fct.jualas.es' ||
-            hostname.contains('jualas.es') ||
-            (!isInternalNetwork && hostname != 'localhost');
-      } catch (e) {
-        return false;
-      }
-    }
-    return false;
-  }
-
-  // Getters principales
-  static String get supabaseUrl {
-    if (kDebugMode) {
-      debugPrint('🔧 Debug - Supabase URL: $_supabaseUrl');
-    }
-    return _supabaseUrl;
-  }
-
-  static String get supabaseAnonKey {
-    if (kDebugMode) {
-      debugPrint(
-        '🔧 Debug - Supabase Anon Key: ${_supabaseAnonKey.substring(0, 20)}...',
-      );
-    }
-    return _supabaseAnonKey;
-  }
-
-  static String get environment {
-    if (kDebugMode) {
-      debugPrint('🔧 Debug - Environment: $_environment');
-    }
-    return _environment;
-  }
-
-  static bool get debugMode {
-    if (kDebugMode) {
-      debugPrint('🔧 Debug - Debug Mode: $_debugMode');
-    }
-    return _debugMode;
-  }
-
-  static String get platformName {
-    if (kDebugMode) {
-      debugPrint('🔧 Debug - Platform Name: $_platformName');
-    }
-    return _platformName;
-  }
-
-  // URLs de servicios externos
-  static String get supabaseStudioUrl =>
-      'https://supabase.com/dashboard/project/zkririyknhlwoxhsoqih';
-  static String get inbucketUrl => 'https://resend.com/emails';
-  static String get storageUrl => '$_supabaseUrl/storage/v1/s3';
 
   // Información de la aplicación
   static const String appName = 'TFG Sistema Multiplataforma';
   static const String appVersion = '1.0.0';
+  static const String environment = 'cloud';
+  static const String platformName = 'Flutter Web';
+
+  // URLs de servicios externos
+  static const String supabaseStudioUrl =
+      'https://supabase.com/dashboard/project/zkririyknhlwoxhsoqih';
+  static const String inbucketUrl = 'https://resend.com/emails';
+  static const String storageUrl =
+      'https://zkririyknhlwoxhsoqih.supabase.co/storage/v1/s3';
 
   // Credenciales de prueba
   static const Map<String, String> testCredentials = {
@@ -109,24 +30,10 @@ class AppConfig {
     'admin_password': 'password123',
   };
 
-  // Métodos de compatibilidad (simplificados)
-  static bool get isDevelopment => true; // Siempre mostrar credenciales
-  static bool get isProduction => false; // No es producción real
-  static String get debugInfo =>
-      'Environment: $_environment, Debug Mode: $_debugMode';
-  static int get platformColor => 0xFF2196F3; // Azul por defecto
+  // Configuración de UI
+  static const int platformColor = 0xFF2196F3; // Azul por defecto
 
-  static void printConfig() {
-    if (kDebugMode) {
-      debugPrint('🔧 Configuración simplificada:');
-      debugPrint('   Supabase URL: $_supabaseUrl');
-      debugPrint('   Environment: $_environment');
-      debugPrint('   Debug Mode: $_debugMode');
-      debugPrint('   Platform: $_platformName');
-      debugPrint('   Red Interna: $isInternalNetwork');
-      debugPrint('   Dominio Externo: $isExternalDomain');
-      debugPrint('   Supabase Studio: $supabaseStudioUrl');
-      debugPrint('   Resend Dashboard: $inbucketUrl');
-    }
-  }
+  // Debug mode (compatibilidad)
+  static bool get debugMode => kDebugMode;
+  static bool get isDevelopment => true; // Siempre true para proyecto educativo
 }
