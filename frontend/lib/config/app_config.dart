@@ -3,9 +3,17 @@ import 'package:flutter/foundation.dart';
 /// Configuración simplificada de la aplicación
 class AppConfig {
   // Configuración de Supabase
-  static const String supabaseUrl = 'https://zkririyknhlwoxhsoqih.supabase.co';
-  static const String supabaseAnonKey =
-      'SUPABASE_JWT_REMOVED';
+  // IMPORTANTE: Estos valores son para desarrollo local.
+  // Para producción, usa variables de entorno:
+  // flutter run --dart-define=SUPABASE_URL=tu_url --dart-define=SUPABASE_ANON_KEY=tu_key
+  static const String supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://zkririyknhlwoxhsoqih.supabase.co',
+  );
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'SUPABASE_JWT_REMOVED',
+  );
 
   // Información de la aplicación
   static const String appName = 'TFG Sistema Multiplataforma';
