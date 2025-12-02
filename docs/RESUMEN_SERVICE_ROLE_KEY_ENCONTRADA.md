@@ -4,7 +4,7 @@
 
 **Service Role Key expuesta:**
 ```
-SUPABASE_JWT_REMOVED
+[CLAVE_REMOVIDA_POR_SEGURIDAD]
 ```
 
 ## 📍 Ubicaciones en el Historial
@@ -32,7 +32,7 @@ Para eliminar esta clave del historial completo:
 1. **Usar BFG Repo-Cleaner** (recomendado):
    ```powershell
    # Crear archivo replace.txt
-   "SUPABASE_JWT_REMOVED==>REMOVIDO_POR_SEGURIDAD" | Out-File -FilePath replace.txt -Encoding UTF8
+   "[CLAVE_REMOVIDA_POR_SEGURIDAD]==>REMOVIDO_POR_SEGURIDAD" | Out-File -FilePath replace.txt -Encoding UTF8
    
    # Ejecutar BFG
    java -jar bfg.jar --replace-text replace.txt
@@ -48,7 +48,7 @@ Para eliminar esta clave del historial completo:
 
 2. **O usar el script automatizado**:
    ```powershell
-   .\scripts\eliminar-service-role-key-historial.ps1 -ServiceRoleKey "SUPABASE_JWT_REMOVED"
+   .\scripts\eliminar-service-role-key-historial.ps1 -ServiceRoleKey "[CLAVE_REMOVIDA_POR_SEGURIDAD]"
    ```
 
 ## ⚠️ Nota Importante
