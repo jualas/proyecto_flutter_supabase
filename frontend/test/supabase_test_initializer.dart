@@ -13,17 +13,29 @@ class SupabaseTestInitializer {
     try {
       // Inicializar mocks primero
       SupabaseMock.initializeMocks();
-      
+
       // Inicializar Supabase real con configuración de test
-      await Supabase.initialize(
-        url: 'http://localhost:54321',
-        anonKey: 'SUPABASE_JWT_REMOVED',
+      // Usar variables de entorno si están disponibles
+      const envUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+      const envAnonKey = String.fromEnvironment(
+        'SUPABASE_ANON_KEY',
+        defaultValue: '',
       );
-      
+
+      final supabaseUrl = envUrl.isNotEmpty ? envUrl : 'http://localhost:54321';
+
+      final supabaseAnonKey = envAnonKey.isNotEmpty
+          ? envAnonKey
+          : 'SUPABASE_JWT_REMOVED';
+
+      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+
       _isInitialized = true;
       debugPrint('✅ SupabaseTestInitializer: Supabase initialized for tests');
     } catch (e) {
-      debugPrint('⚠️ SupabaseTestInitializer: Failed to initialize Supabase: $e');
+      debugPrint(
+        '⚠️ SupabaseTestInitializer: Failed to initialize Supabase: $e',
+      );
       // Continuar sin Supabase para tests que no lo necesiten
       _isInitialized = true;
     }
