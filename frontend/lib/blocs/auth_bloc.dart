@@ -1,18 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
-import '../models/user.dart';
 import '../services/auth_service.dart';
-import '../services/theme_service.dart';
-import '../router/app_router.dart';
-import '../utils/app_exception.dart';
-import '../utils/error_translator.dart';
 
-/// Eventos de autenticación.
-///
-/// Representan las intenciones del usuario o cambios externos del sistema
-/// (por ejemplo, un `signedIn` emitido por Supabase).
 // Events
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -21,35 +10,23 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class AuthCheckRequested extends AuthEvent {}
+
 class AuthLoginRequested extends AuthEvent {
   final String email;
   final String password;
-  final BuildContext context;
 
   const AuthLoginRequested({
     required this.email,
     required this.password,
-    required this.context,
   });
 
   @override
-  List<Object> get props => [email, password, context];
+  List<Object> get props => [email, password];
 }
 
 class AuthLogoutRequested extends AuthEvent {}
 
-class AuthCheckRequested extends AuthEvent {}
-
-class AuthUserChanged extends AuthEvent {
-  final User? user;
-
-  const AuthUserChanged({this.user});
-
-  @override
-  List<Object?> get props => [user];
-}
-
-/// Estados de autenticación renderizados por la UI.
 // States
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -63,12 +40,12 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
-  final User user;
+  final String email;
 
-  const AuthAuthenticated(this.user);
+  const AuthAuthenticated({required this.email});
 
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [email];
 }
 
 class AuthUnauthenticated extends AuthState {}
@@ -82,62 +59,26 @@ class AuthFailure extends AuthState {
   List<Object> get props => [message];
 }
 
-/// BLoC de autenticación.
-///
-/// Orquesta el flujo de login/logout, chequeo de sesión y reacción a cambios
-/// de estado de Supabase Auth. Emite estados para que la UI navegue y muestre
-/// mensajes adecuados. Maneja errores mediante `AppException` y traducciones
-/// de `ErrorTranslator`.
 // BLoC
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthService _authService;
+  final AuthService authService;
 
-  AuthBloc({required AuthService authService})
-    : _authService = authService,
-      super(AuthInitial()) {
+  AuthBloc({required this.authService}) : super(AuthInitial()) {
+    on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
-    on<AuthCheckRequested>(_onAuthCheckRequested);
-    on<AuthUserChanged>(_onAuthUserChanged);
+  }
 
-    // Escuchar cambios en el estado de autenticación de Supabase
-    try {
-      _authService.authStateChanges.listen((
-        supabase.AuthState supabaseAuthState,
-      ) {
-        debugPrint(
-          '🔄 Cambio de estado de autenticación: ${supabaseAuthState.event}',
-        );
-
-        if (supabaseAuthState.event == supabase.AuthChangeEvent.signedOut) {
-          debugPrint('🚪 Usuario deslogueado');
-          add(const AuthUserChanged(user: null));
-        } else if (supabaseAuthState.event ==
-            supabase.AuthChangeEvent.signedIn) {
-          debugPrint('🔑 Usuario logueado');
-          // Obtener el perfil del usuario desde Supabase
-          _authService.getCurrentUserFromSupabase().then((user) {
-            if (user != null) {
-              ThemeService.instance.setUser(user);
-            }
-            add(AuthUserChanged(user: user));
-          });
-        } else if (supabaseAuthState.event ==
-            supabase.AuthChangeEvent.tokenRefreshed) {
-          debugPrint('🔄 Token refrescado');
-          // Verificar si el usuario sigue autenticado
-          _authService.getCurrentUserFromSupabase().then((user) {
-            if (user != null) {
-              ThemeService.instance.setUser(user);
-            }
-            add(AuthUserChanged(user: user));
-          });
-        }
-      });
-    } catch (e) {
-      debugPrint('❌ Error inicializando AuthBloc: $e');
-      // Si hay error, emitir estado de fallo
-      add(const AuthUserChanged(user: null));
+  Future<void> _onAuthCheckRequested(
+    AuthCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    
+    if (authService.isAuthenticated) {
+      emit(AuthAuthenticated(email: authService.currentUserEmail!));
+    } else {
+      emit(AuthUnauthenticated());
     }
   }
 
@@ -146,39 +87,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-
+    
     try {
-      final response = await _authService.signIn(
-        email: event.email,
-        password: event.password,
-      );
-
-      if (response['success'] == true && response['user'] != null) {
-        // Crear el usuario directamente desde la respuesta de login
-        final userProfile = _authService.createUserFromLoginResponse(response);
-        if (userProfile != null) {
-          // Actualizar el tema según el rol del usuario
-          ThemeService.instance.setUser(userProfile);
-          emit(AuthAuthenticated(userProfile));
-          // Navegar al dashboard correcto usando el router
-          if (event.context.mounted) {
-            AppRouter.goToDashboard(event.context, userProfile);
-          }
-        } else {
-          emit(const AuthFailure('No se pudo crear el perfil del usuario'));
-        }
+      final success = await authService.login(event.email, event.password);
+      
+      if (success) {
+        emit(AuthAuthenticated(email: event.email));
       } else {
-        emit(const AuthFailure('Credenciales inválidas'));
+        emit(const AuthFailure('Credenciales incorrectas'));
       }
     } catch (e) {
-      // Manejar errores usando el nuevo sistema
-      if (e is AppException) {
-        final fallbackMessage = ErrorTranslator.getFallbackMessage(e);
-        emit(AuthFailure(fallbackMessage));
-      } else {
-        // Error no categorizado
-        emit(AuthFailure('Error inesperado: ${e.toString()}'));
-      }
+      emit(AuthFailure('Error al iniciar sesión: ${e.toString()}'));
     }
   }
 
@@ -187,57 +106,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-
+    
     try {
-      await _authService.signOut();
-      // Resetear el tema al logout
-      ThemeService.instance.reset();
+      await authService.logout();
       emit(AuthUnauthenticated());
     } catch (e) {
-      // Manejar errores usando el nuevo sistema
-      if (e is AppException) {
-        final fallbackMessage = ErrorTranslator.getFallbackMessage(e);
-        emit(AuthFailure(fallbackMessage));
-      } else {
-        emit(AuthFailure('Error inesperado: ${e.toString()}'));
-      }
-    }
-  }
-
-  Future<void> _onAuthCheckRequested(
-    AuthCheckRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-
-    try {
-      // Verificar si hay una sesión activa en Supabase
-      final currentUser = await _authService.getCurrentUserFromSupabase();
-      if (currentUser != null) {
-        // Actualizar el tema según el rol del usuario
-        ThemeService.instance.setUser(currentUser);
-        emit(AuthAuthenticated(currentUser));
-        debugPrint('✅ Sesión activa encontrada en Supabase');
-      } else {
-        emit(AuthUnauthenticated());
-        debugPrint('ℹ️ No hay sesión activa en Supabase');
-      }
-    } catch (e) {
-      // Manejar errores usando el nuevo sistema
-      if (e is AppException) {
-        final fallbackMessage = ErrorTranslator.getFallbackMessage(e);
-        emit(AuthFailure(fallbackMessage));
-      } else {
-        emit(AuthFailure('Error inesperado: ${e.toString()}'));
-      }
-    }
-  }
-
-  void _onAuthUserChanged(AuthUserChanged event, Emitter<AuthState> emit) {
-    if (event.user != null) {
-      emit(AuthAuthenticated(event.user!));
-    } else {
-      emit(AuthUnauthenticated());
+      emit(AuthFailure('Error al cerrar sesión: ${e.toString()}'));
     }
   }
 }

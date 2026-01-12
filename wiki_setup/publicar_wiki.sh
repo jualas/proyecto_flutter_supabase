@@ -177,28 +177,12 @@ copy_technical_docs() {
     
     cd "$WIKI_DIR"
     
-    # Arquitectura de Autenticación
-    if [ -f "${DOCS_DIR}/arquitectura/login.md" ]; then
-        cp "${DOCS_DIR}/arquitectura/login.md" Arquitectura-Autenticacion.md
+    # Arquitectura de Autenticación (desde wiki_setup)
+    if [ -f "../wiki_setup/Arquitectura-Autenticacion.md" ]; then
+        cp ../wiki_setup/Arquitectura-Autenticacion.md Arquitectura-Autenticacion.md
         print_success "✓ Arquitectura de Autenticación copiada"
     else
         print_warning "! Arquitectura de autenticación no encontrada"
-    fi
-    
-    # Registro de Usuarios
-    if [ -f "${DOCS_DIR}/arquitectura/registro_usuarios_por_roles.md" ]; then
-        cp "${DOCS_DIR}/arquitectura/registro_usuarios_por_roles.md" Registro-Usuarios.md
-        print_success "✓ Registro de Usuarios copiado"
-    else
-        print_warning "! Registro de usuarios no encontrado"
-    fi
-    
-    # Guía de Despliegue
-    if [ -f "${DOCS_DIR}/despliegue/guia_despliegue_vps_debian.md" ]; then
-        cp "${DOCS_DIR}/despliegue/guia_despliegue_vps_debian.md" Guia-Despliegue.md
-        print_success "✓ Guía de Despliegue copiada"
-    else
-        print_warning "! Guía de despliegue no encontrada"
     fi
     
     cd ..

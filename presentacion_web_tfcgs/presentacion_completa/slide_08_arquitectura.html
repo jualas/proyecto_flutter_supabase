@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            color: #2F4F4F;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+            /* keep top padding (title spacing) but reduce bottom padding to bring lowest element above 720px */
+            padding: 60px 60px 32px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h1 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #0047AB;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .tech-item {
+            background: #F9FAFB;
+            padding: 20px;
+            border-left: 4px solid #10B981;
+            border-radius: 4px;
+        }
+        
+        .tech-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+        
+        .tech-desc {
+            font-size: 16px;
+            color: #4B5563;
+            line-height: 1.4;
+        }
+        
+        .screenshot-container {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f0f0f0;
+            max-height: 400px;
+        }
+        
+        .screenshot {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <h1>Arquitectura Moderna y Escalable</h1>
+        
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-title">Flutter (Frontend)</div>
+                <div class="tech-desc">Desarrollo multiplataforma para Web, Android y Desktop (No iOS).</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-title">Supabase (Backend)</div>
+                <div class="tech-desc">Base de datos PostgreSQL, Autenticación y Almacenamiento.</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-title">Resend (Email)</div>
+                <div class="tech-desc">Gestión de correos transaccionales y notificaciones.</div>
+            </div>
+        </div>
+        
+        <div class="screenshot-container">
+            <img src="images/pasted_file_GohLZA_image.png" alt="Supabase Dashboard Real" class="screenshot">
+        </div>
+        
+        <div class="page-number">08</div>
+    </div>
+</body>
+</html>

@@ -32,8 +32,6 @@
 - [🔧 Guía de Desarrollo](03-Guia-Desarrollo)
 - [📁 Estructura del Código](04-Estructura-Codigo)
 - [🔐 Autenticación](Arquitectura-Autenticacion)
-- [📝 Registro de Usuarios](Registro-Usuarios)
-- [🚀 Despliegue VPS](Guia-Despliegue)
 
 ---
 

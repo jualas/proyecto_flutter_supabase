@@ -736,7 +736,7 @@ Para problemas técnicos del sistema:
 - 🚀 [Guía de Inicio Rápido](Guia-Inicio-Rapido)
 - ❓ [Preguntas Frecuentes (FAQ)](FAQ)
 - 👨‍🏫 [Guía para Tutores](Guia-Tutores)
-- 🔐 [Documentación de Login y Credenciales](../docs/arquitectura/login.md)
+- 🔐 [Arquitectura de Autenticación](Arquitectura-Autenticacion)
 
 ---
 

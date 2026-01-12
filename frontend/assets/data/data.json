@@ -1,0 +1,70 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "title": "Proyecto Demo",
+      "description": "Un proyecto de ejemplo para comenzar a usar TaskBoard",
+      "status": "development",
+      "createdAt": "2026-01-12T00:00:00.000Z",
+      "updatedAt": "2026-01-12T00:00:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "projectId": 1,
+      "title": "Configurar entorno de desarrollo",
+      "description": "Instalar todas las dependencias y configurar el proyecto",
+      "status": "completed",
+      "complexity": "simple",
+      "estimatedHours": 2,
+      "dueDate": null,
+      "tags": ["setup", "inicial"],
+      "kanbanPosition": 1.0,
+      "createdAt": "2026-01-12T00:00:00.000Z",
+      "updatedAt": "2026-01-12T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "projectId": 1,
+      "title": "Diseñar la arquitectura",
+      "description": "Definir la estructura de carpetas y componentes principales",
+      "status": "in_progress",
+      "complexity": "medium",
+      "estimatedHours": 8,
+      "dueDate": "2026-01-20T00:00:00.000Z",
+      "tags": ["arquitectura", "diseño"],
+      "kanbanPosition": 1.0,
+      "createdAt": "2026-01-12T00:00:00.000Z",
+      "updatedAt": "2026-01-12T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "projectId": 1,
+      "title": "Implementar funcionalidades principales",
+      "description": "Desarrollar las características core de la aplicación",
+      "status": "pending",
+      "complexity": "complex",
+      "estimatedHours": 24,
+      "dueDate": "2026-01-30T00:00:00.000Z",
+      "tags": ["desarrollo", "core"],
+      "kanbanPosition": 1.0,
+      "createdAt": "2026-01-12T00:00:00.000Z",
+      "updatedAt": "2026-01-12T00:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "projectId": 1,
+      "title": "Crear documentación",
+      "description": "Escribir la documentación del proyecto",
+      "status": "pending",
+      "complexity": "simple",
+      "estimatedHours": 4,
+      "dueDate": null,
+      "tags": ["documentación"],
+      "kanbanPosition": 2.0,
+      "createdAt": "2026-01-12T00:00:00.000Z",
+      "updatedAt": "2026-01-12T00:00:00.000Z"
+    }
+  ]
+}

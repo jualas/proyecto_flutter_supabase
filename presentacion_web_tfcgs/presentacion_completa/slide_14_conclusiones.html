@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            color: #2F4F4F;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #0047AB;
+            margin-bottom: 60px;
+            line-height: 1.2;
+            text-align: center;
+        }
+        
+        .conclusions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+        
+        .conclusion-item {
+            text-align: center;
+            padding: 30px;
+            background: #F9FAFB;
+            border-bottom: 6px solid #10B981;
+        }
+        
+        .conclusion-number {
+            font-size: 64px;
+            font-weight: 700;
+            color: #E5E7EB;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+        
+        .conclusion-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 15px;
+        }
+        
+        .conclusion-desc {
+            font-size: 18px;
+            color: #4B5563;
+            line-height: 1.6;
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <h1>Conclusiones Finales</h1>
+        
+        <div class="conclusions-grid">
+            <div class="conclusion-item">
+                <div class="conclusion-number">01</div>
+                <div class="conclusion-title">Solución Integral</div>
+                <div class="conclusion-desc">Digitalización completa del flujo de anteproyectos, eliminando burocracia y papel.</div>
+            </div>
+            
+            <div class="conclusion-item">
+                <div class="conclusion-number">02</div>
+                <div class="conclusion-title">Crecimiento Técnico</div>
+                <div class="conclusion-desc">Dominio de tecnologías modernas (Flutter, Supabase) más allá del currículo académico.</div>
+            </div>
+            
+            <div class="conclusion-item">
+                <div class="conclusion-number">03</div>
+                <div class="conclusion-title">Impacto Real</div>
+                <div class="conclusion-desc">Herramienta lista para mejorar la gestión educativa y facilitar la labor docente.</div>
+            </div>
+        </div>
+        
+        <div class="page-number">14</div>
+    </div>
+</body>
+</html>

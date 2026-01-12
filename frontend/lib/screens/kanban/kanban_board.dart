@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../blocs/auth_bloc.dart';
 import '../../blocs/tasks_bloc.dart';
-import '../../l10n/app_localizations.dart';
-import '../../models/task.dart';
-import '../../models/user.dart';
-import '../../services/logging_service.dart';
-import '../../widgets/navigation/app_bar_actions.dart';
+import '../../models/models.dart';
+import '../../themes/app_theme.dart';
 import '../forms/task_form.dart';
 
 class KanbanBoard extends StatefulWidget {
-  final int? projectId;
-  final bool isEmbedded;
+  final int projectId;
 
   const KanbanBoard({
     super.key,
     required this.projectId,
-    this.isEmbedded = false,
   });
 
   @override
@@ -26,163 +19,108 @@ class KanbanBoard extends StatefulWidget {
 }
 
 class _KanbanBoardState extends State<KanbanBoard> {
-  // Tarea siendo arrastrada actualmente
   Task? _draggingTask;
-
-  // Índice donde se insertaría la tarea (para placeholder)
   int? _dropTargetIndex;
   TaskStatus? _dropTargetStatus;
-  User? _currentUser;
-
-  // Bandera para evitar múltiples drops simultáneos
   bool _isProcessingDrop = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentUser();
-    // Cargar tareas al inicializar
     context.read<TasksBloc>().add(
       TasksLoadRequested(projectId: widget.projectId),
     );
   }
 
-  Future<void> _loadCurrentUser() async {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated) {
-      setState(() {
-        _currentUser = authState.user;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    final body = BlocConsumer<TasksBloc, TasksState>(
-      listener: (context, state) {
-        if (state is TasksFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.messageKey),
-              backgroundColor: Colors.red,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tablero Kanban'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/projects'),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.list),
+            onPressed: () => context.go('/projects/${widget.projectId}/tasks'),
+            tooltip: 'Ver como lista',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<TasksBloc>().add(
+              TasksLoadRequested(projectId: widget.projectId),
             ),
-          );
-        } else if (state is TaskOperationSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.taskUpdatedSuccess),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      },
-      builder: (context, state) {
-        if (state is TasksLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+            tooltip: 'Actualizar',
+          ),
+        ],
+      ),
+      body: BlocConsumer<TasksBloc, TasksState>(
+        listener: (context, state) {
+          if (state is TasksFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          } else if (state is TaskOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is TasksLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (state is TasksFailure) {
+          if (state is TasksLoaded) {
+            return _buildKanbanBoard(state.tasks);
+          }
+
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                const SizedBox(height: 16),
-                Text(
-                  state.messageKey,
-                  style: TextStyle(color: Colors.red[700]),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => context.read<TasksBloc>().add(
-                    TasksLoadRequested(projectId: widget.projectId),
-                  ),
-                  child: Text(l10n.tasksListRefresh),
-                ),
-              ],
+            child: Text(
+              'No hay tareas',
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           );
-        }
-
-        if (state is TasksLoaded) {
-          return _buildKanbanBoard(state.tasks, l10n);
-        }
-
-        return Center(child: Text(l10n.tasksListEmpty));
-      },
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createTask,
+        child: const Icon(Icons.add),
+      ),
     );
-
-    if (widget.isEmbedded) {
-      return body;
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.kanbanBoardTitle),
-          actions: _currentUser != null
-              ? AppBarActions.build(
-                  context,
-                  _currentUser!,
-                  additionalActions: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: () => context.read<TasksBloc>().add(
-                        TasksLoadRequested(projectId: widget.projectId),
-                      ),
-                      tooltip: l10n.tasksListRefresh,
-                    ),
-                  ],
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () => context.read<TasksBloc>().add(
-                      TasksLoadRequested(projectId: widget.projectId),
-                    ),
-                    tooltip: l10n.tasksListRefresh,
-                  ),
-                ],
-        ),
-        body: body,
-        floatingActionButton: FloatingActionButton(
-          onPressed: _createTask,
-          child: const Icon(Icons.add),
-        ),
-      );
-    }
   }
 
-  Widget _buildKanbanBoard(List<Task> allTasks, AppLocalizations l10n) {
+  Widget _buildKanbanBoard(List<Task> allTasks) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: TaskStatus.values.map((status) {
-        return Expanded(child: _buildColumn(status, allTasks, l10n));
+        return Expanded(child: _buildColumn(status, allTasks));
       }).toList(),
     );
   }
 
-  Widget _buildColumn(
-    TaskStatus status,
-    List<Task> tasks,
-    AppLocalizations l10n,
-  ) {
+  Widget _buildColumn(TaskStatus status, List<Task> tasks) {
     final columnTasks = tasks.where((task) => task.status == status).toList();
     columnTasks.sort(
-      (a, b) => (a.kanbanPosition ?? 0).compareTo(b.kanbanPosition ?? 0),
+      (a, b) => a.kanbanPosition.compareTo(b.kanbanPosition),
     );
 
-    final columnTitle = _getColumnTitle(status, l10n);
-    final columnColor = _getColumnColor(status);
+    final columnTitle = status.displayName;
+    final headerColor = KanbanColors.getHeaderColor(status.dbValue);
+    final bgColor = KanbanColors.getBackgroundColor(status.dbValue);
 
     return DragTarget<Task>(
       onAcceptWithDetails: (details) {
-        // Solo procesar si no hay una zona de drop específica activa
-        // y no se está procesando otro drop
         if (_dropTargetIndex == null && !_isProcessingDrop) {
           final task = details.data;
-          // Si la tarea ya está en esta columna, usar el final de la lista
-          // Si viene de otra columna, también usar el final
           final targetIndex = task.status == status
               ? columnTasks.length - 1
               : columnTasks.length;
@@ -190,8 +128,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
         }
       },
       onWillAcceptWithDetails: (details) {
-        // Solo aceptar si no hay una zona de drop específica activa
-        // Esto evita que la columna capture el drop cuando hay una zona específica
         return _dropTargetIndex == null;
       },
       builder: (context, candidateData, rejectedData) {
@@ -200,9 +136,12 @@ class _KanbanBoardState extends State<KanbanBoard> {
         return Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isHighlighted ? headerColor : AppColors.textSecondary.withValues(alpha: 0.2),
+              width: isHighlighted ? 2 : 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,12 +151,10 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isHighlighted
-                      ? columnColor.withValues(alpha: 0.8)
-                      : columnColor,
+                  color: headerColor,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
+                    topLeft: Radius.circular(11),
+                    topRight: Radius.circular(11),
                   ),
                 ),
                 child: Row(
@@ -225,7 +162,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                     Text(
                       columnTitle,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnDark,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -243,7 +180,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                       child: Text(
                         '${columnTasks.length}',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnDark,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -254,25 +191,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
               ),
               // Lista de tareas con scroll
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isHighlighted
-                        ? columnColor.withValues(alpha: 0.05)
-                        : Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                    ),
-                    border: isHighlighted
-                        ? Border.all(
-                            color: columnColor,
-                            width: 2,
-                            style: BorderStyle.solid,
-                          )
-                        : null,
-                  ),
-                  child: _buildTaskList(columnTasks, status, l10n),
-                ),
+                child: _buildTaskList(columnTasks, status),
               ),
             ],
           ),
@@ -281,13 +200,8 @@ class _KanbanBoardState extends State<KanbanBoard> {
     );
   }
 
-  Widget _buildTaskList(
-    List<Task> tasks,
-    TaskStatus columnStatus,
-    AppLocalizations l10n,
-  ) {
+  Widget _buildTaskList(List<Task> tasks, TaskStatus columnStatus) {
     if (tasks.isEmpty) {
-      // Zona de drop para columnas vacías
       return DragTarget<Task>(
         onWillAcceptWithDetails: (details) {
           if (_draggingTask == null) return false;
@@ -304,12 +218,10 @@ class _KanbanBoardState extends State<KanbanBoard> {
           });
         },
         onAcceptWithDetails: (details) {
-          // Solo procesar si no se está procesando otro drop
           if (!_isProcessingDrop) {
             final task = details.data;
             _handleTaskDrop(task, columnStatus, 0);
           }
-
           setState(() {
             _dropTargetIndex = null;
             _dropTargetStatus = null;
@@ -317,15 +229,14 @@ class _KanbanBoardState extends State<KanbanBoard> {
         },
         builder: (context, candidateData, rejectedData) {
           final showPlaceholder = candidateData.isNotEmpty;
-
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: showPlaceholder
                   ? _buildInsertionPlaceholder()
                   : Text(
-                      l10n.tasksListEmpty,
-                      style: TextStyle(color: Colors.grey[600]),
+                      'Sin tareas',
+                      style: TextStyle(color: AppColors.textSecondary),
                       textAlign: TextAlign.center,
                     ),
             ),
@@ -336,35 +247,28 @@ class _KanbanBoardState extends State<KanbanBoard> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: tasks.length * 2 + 1, // Espacios + tarjetas + espacio final
+      itemCount: tasks.length * 2 + 1,
       itemBuilder: (context, index) {
-        // Índices impares son tarjetas, pares son zonas de drop
         if (index.isEven) {
-          // Zona de drop
           final dropIndex = index ~/ 2;
           return _buildDropZone(columnStatus, dropIndex, tasks);
         } else {
-          // Tarjeta
           final taskIndex = index ~/ 2;
           final task = tasks[taskIndex];
 
-          // No mostrar la tarjeta que se está arrastrando
           if (_draggingTask?.id == task.id) {
             return _buildDraggingPlaceholder();
           }
 
-          return _buildTaskCard(task, l10n, taskIndex, key: ValueKey(task.id));
+          return _buildTaskCard(task, taskIndex, key: ValueKey(task.id));
         }
       },
     );
   }
 
-  Widget _buildTaskCard(
-    Task task,
-    AppLocalizations l10n,
-    int taskIndex, {
-    Key? key,
-  }) {
+  Widget _buildTaskCard(Task task, int taskIndex, {Key? key}) {
+    final borderColor = KanbanColors.getBorderColor(task.status.dbValue);
+    
     return Draggable<Task>(
       key: key,
       data: task,
@@ -391,9 +295,13 @@ class _KanbanBoardState extends State<KanbanBoard> {
       childWhenDragging: const SizedBox.shrink(),
       child: Card(
         margin: const EdgeInsets.only(bottom: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: borderColor.withValues(alpha: 0.5), width: 1),
+        ),
         child: InkWell(
           onTap: () => _showTaskOptions(task),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -405,7 +313,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: _getColumnColor(task.status),
+                        color: borderColor,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -423,54 +331,40 @@ class _KanbanBoardState extends State<KanbanBoard> {
                     ),
                     Icon(
                       Icons.drag_indicator,
-                      color: Colors.grey[400],
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
                       size: 16,
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  task.description,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                if (task.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    task.description,
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
                   children: [
-                    _buildComplexityChip(task.complexity, l10n),
-                    if (task.estimatedHours != null) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${task.estimatedHours}h',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.blue[900],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                    _buildComplexityChip(task.complexity),
+                    if (task.estimatedHours != null)
+                      _buildInfoChip('${task.estimatedHours}h', Icons.schedule),
+                    ...task.tags.take(2).map((tag) => _buildTagChip(tag)),
                   ],
                 ),
                 if (task.dueDate != null) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.schedule, size: 12, color: Colors.grey[600]),
+                      Icon(Icons.event, size: 12, color: AppColors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         '${task.dueDate!.day}/${task.dueDate!.month}',
-                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -483,21 +377,12 @@ class _KanbanBoardState extends State<KanbanBoard> {
     );
   }
 
-  /// Construye una zona de drop entre tarjetas
-  Widget _buildDropZone(
-    TaskStatus status,
-    int dropIndex,
-    List<Task> columnTasks,
-  ) {
-    final isTargeted =
-        _dropTargetStatus == status && _dropTargetIndex == dropIndex;
+  Widget _buildDropZone(TaskStatus status, int dropIndex, List<Task> columnTasks) {
+    final isTargeted = _dropTargetStatus == status && _dropTargetIndex == dropIndex;
 
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        if (_draggingTask == null) {
-          return false;
-        }
-
+        if (_draggingTask == null) return false;
         setState(() {
           _dropTargetIndex = dropIndex;
           _dropTargetStatus = status;
@@ -513,11 +398,9 @@ class _KanbanBoardState extends State<KanbanBoard> {
         }
       },
       onAcceptWithDetails: (details) {
-        // Solo procesar si no se está procesando otro drop
         if (!_isProcessingDrop) {
           final task = details.data;
           _handleTaskDrop(task, status, dropIndex);
-
           setState(() {
             _dropTargetIndex = null;
             _dropTargetStatus = null;
@@ -533,17 +416,16 @@ class _KanbanBoardState extends State<KanbanBoard> {
     );
   }
 
-  /// Placeholder visual cuando se arrastra una tarea
   Widget _buildInsertionPlaceholder() {
     return Container(
       height: 4,
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.blue[400],
+        color: AppColors.accentPrimary,
         borderRadius: BorderRadius.circular(2),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.3),
+            color: AppColors.accentPrimary.withValues(alpha: 0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -552,109 +434,94 @@ class _KanbanBoardState extends State<KanbanBoard> {
     );
   }
 
-  /// Placeholder para la tarea que se está arrastrando
   Widget _buildDraggingPlaceholder() {
     return Container(
       height: 80,
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: AppColors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: AppColors.textSecondary.withValues(alpha: 0.3),
           width: 2,
           style: BorderStyle.solid,
         ),
       ),
       child: Center(
-        child: Icon(Icons.drag_indicator, color: Colors.grey[400], size: 32),
+        child: Icon(Icons.drag_indicator, color: AppColors.textSecondary, size: 32),
       ),
     );
   }
 
   Widget _buildDragFeedback(Task task) {
+    final borderColor = KanbanColors.getBorderColor(task.status.dbValue);
+    
     return Material(
       elevation: 12,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       shadowColor: Colors.black.withValues(alpha: 0.3),
       child: Container(
         width: 280,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _getColumnColor(task.status), width: 2),
+          color: AppColors.backgroundSecondary,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 2),
         ),
-        child: Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _getColumnColor(task.status),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        task.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Icon(
-                      Icons.drag_indicator,
-                      color: Colors.grey[400],
-                      size: 16,
-                    ),
-                  ],
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: borderColor,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  task.description,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    task.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
-          ),
+            if (task.description.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                task.description,
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildComplexityChip(
-    TaskComplexity complexity,
-    AppLocalizations l10n,
-  ) {
-    String complexityText;
+  Widget _buildComplexityChip(TaskComplexity complexity) {
     Color color;
-
     switch (complexity) {
       case TaskComplexity.simple:
-        complexityText = l10n.taskComplexitySimple;
-        color = Colors.green;
+        color = AppColors.success;
         break;
       case TaskComplexity.medium:
-        complexityText = l10n.taskComplexityMedium;
-        color = Colors.orange;
+        color = AppColors.warning;
         break;
       case TaskComplexity.complex:
-        complexityText = l10n.taskComplexityComplex;
-        color = Colors.red;
+        color = AppColors.error;
         break;
     }
 
@@ -665,7 +532,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        complexityText,
+        complexity.displayName,
         style: TextStyle(
           fontSize: 10,
           color: color,
@@ -675,41 +542,51 @@ class _KanbanBoardState extends State<KanbanBoard> {
     );
   }
 
-  String _getColumnTitle(TaskStatus status, AppLocalizations l10n) {
-    switch (status) {
-      case TaskStatus.pending:
-        return l10n.taskStatusPending;
-      case TaskStatus.inProgress:
-        return l10n.taskStatusInProgress;
-      case TaskStatus.completed:
-        return l10n.taskStatusCompleted;
-    }
+  Widget _buildInfoChip(String text, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.accentSecondary.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: AppColors.accentPrimary),
+          const SizedBox(width: 2),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 10,
+              color: AppColors.accentPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Color _getColumnColor(TaskStatus status) {
-    switch (status) {
-      case TaskStatus.pending:
-        return Colors.grey;
-      case TaskStatus.inProgress:
-        return Colors.blue;
-      case TaskStatus.completed:
-        return Colors.green;
-    }
+  Widget _buildTagChip(String tag) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDark.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        tag,
+        style: TextStyle(
+          fontSize: 10,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
   }
 
   void _handleTaskDrop(Task task, TaskStatus newStatus, int targetIndex) {
-    // Evitar procesar múltiples drops simultáneos
-    if (_isProcessingDrop) {
-      LoggingService.debug('⚠️ Drop ya en proceso, ignorando');
-      return;
-    }
+    if (_isProcessingDrop) return;
 
-    LoggingService.debug('🔄 Drag & Drop: ${task.title}');
-    LoggingService.debug('   Estado actual: ${task.status.name}');
-    LoggingService.debug('   Estado nuevo: ${newStatus.name}');
-    LoggingService.debug('   Índice destino: $targetIndex');
-
-    // Marcar que estamos procesando el drop
     setState(() {
       _isProcessingDrop = true;
       _draggingTask = null;
@@ -717,17 +594,15 @@ class _KanbanBoardState extends State<KanbanBoard> {
       _dropTargetStatus = null;
     });
 
-    // Enviar el evento al BLoC
     context.read<TasksBloc>().add(
       TaskReorderRequested(
         taskId: task.id,
         newStatus: newStatus,
-        newPosition: targetIndex.toDouble(),
+        targetIndex: targetIndex,
+        projectId: widget.projectId,
       ),
     );
 
-    // Resetear la bandera después de un breve delay
-    // para permitir que el BLoC procese el evento
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() {
@@ -738,8 +613,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
   }
 
   Future<void> _showTaskOptions(Task task) async {
-    final l10n = AppLocalizations.of(context)!;
-    
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -748,19 +621,19 @@ class _KanbanBoardState extends State<KanbanBoard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.edit, color: Colors.blue),
-              title: Text(l10n.edit),
+              leading: const Icon(Icons.edit, color: AppColors.accentPrimary),
+              title: const Text('Editar'),
               onTap: () {
                 Navigator.of(context).pop();
                 _editTask(task);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.info_outline, color: Colors.green),
-              title: Text(l10n.viewDetails),
+              leading: const Icon(Icons.delete, color: AppColors.error),
+              title: const Text('Eliminar', style: TextStyle(color: AppColors.error)),
               onTap: () {
                 Navigator.of(context).pop();
-                _viewTaskDetails(task);
+                _deleteTask(task);
               },
             ),
           ],
@@ -768,7 +641,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
+            child: const Text('Cerrar'),
           ),
         ],
       ),
@@ -778,41 +651,71 @@ class _KanbanBoardState extends State<KanbanBoard> {
   Future<void> _editTask(Task task) async {
     await showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: TaskForm(projectId: widget.projectId, task: task),
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: TaskForm(
+            projectId: widget.projectId,
+            task: task,
+            onSave: (updatedTask) {
+              context.read<TasksBloc>().add(TaskUpdateRequested(updatedTask));
+              Navigator.of(dialogContext).pop();
+            },
+          ),
         ),
       ),
     );
   }
 
-  void _viewTaskDetails(Task task) {
-    if (_currentUser != null) {
-      context.go('/tasks/${task.id}', extra: _currentUser);
-    } else {
-      // Cargar usuario si no está disponible
-      final authState = context.read<AuthBloc>().state;
-      if (authState is AuthAuthenticated) {
-        context.go('/tasks/${task.id}', extra: authState.user);
-      } else {
-        // Fallback: intentar obtener usuario del AuthBloc
-        final authState = context.read<AuthBloc>().state;
-        if (authState is AuthAuthenticated) {
-          context.go('/tasks/${task.id}', extra: authState.user);
-        }
-        // Si no hay usuario autenticado, no navegar (no debería pasar)
-      }
-    }
+  void _deleteTask(Task task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Tarea'),
+        content: Text('¿Estás seguro de que quieres eliminar "${task.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<TasksBloc>().add(
+                TaskDeleteRequested(id: task.id, projectId: widget.projectId),
+              );
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _createTask() async {
     await showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: TaskForm(projectId: widget.projectId),
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: TaskForm(
+            projectId: widget.projectId,
+            onSave: (task) {
+              context.read<TasksBloc>().add(
+                TaskCreateRequested(
+                  projectId: widget.projectId,
+                  title: task.title,
+                  description: task.description,
+                  complexity: task.complexity,
+                  estimatedHours: task.estimatedHours,
+                  dueDate: task.dueDate,
+                  tags: task.tags,
+                ),
+              );
+              Navigator.of(dialogContext).pop();
+            },
+          ),
         ),
       ),
     );

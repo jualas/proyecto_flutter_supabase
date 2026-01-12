@@ -45,9 +45,7 @@ Esta carpeta contiene todo lo necesario para configurar la wiki de GitHub de tu 
 
 | Archivo Origen | Se Publica Como |
 |----------------|-----------------|
-| `docs/arquitectura/login.md` | `Arquitectura-Autenticacion` |
-| `docs/arquitectura/registro_usuarios_por_roles.md` | `Registro-Usuarios` |
-| `docs/despliegue/guia_despliegue_vps_debian.md` | `Guia-Despliegue` |
+| `wiki_setup/Arquitectura-Autenticacion.md` | `Arquitectura-Autenticacion` |
 
 ---
 
@@ -82,9 +80,7 @@ GitHub Wiki
 │   └── Guia-Administradores     ← 900+ líneas
 │
 ├── Documentación Técnica
-│   ├── Arquitectura-Autenticacion
-│   ├── Registro-Usuarios
-│   └── Guia-Despliegue
+│   └── Arquitectura-Autenticacion
 │
 ├── Recursos
 │   ├── FAQ                       ← Preguntas frecuentes

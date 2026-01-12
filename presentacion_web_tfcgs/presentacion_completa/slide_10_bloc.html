@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            color: #2F4F4F;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 40% 60%;
+        }
+        
+        .content-side {
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: #F9FAFB;
+            border-right: 1px solid #E5E7EB;
+        }
+        
+        .table-side {
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: #FFFFFF;
+        }
+        
+        h1 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #0047AB;
+            margin-bottom: 40px;
+            line-height: 1.2;
+        }
+        
+        .feature-item {
+            margin-bottom: 30px;
+            padding-left: 20px;
+            border-left: 4px solid #10B981;
+        }
+        
+        .feature-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+        
+        .feature-desc {
+            font-size: 18px;
+            color: #4B5563;
+            line-height: 1.5;
+        }
+        
+        .bloc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .bloc-table thead {
+            background-color: #0047AB;
+            color: #FFFFFF;
+        }
+        
+        .bloc-table th {
+            padding: 16px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .bloc-table tbody tr {
+            border-bottom: 1px solid #E5E7EB;
+        }
+        
+        .bloc-table tbody tr:nth-child(even) {
+            background-color: #F9FAFB;
+        }
+        
+        .bloc-table tbody tr:hover {
+            background-color: #F3F4F6;
+        }
+        
+        .bloc-table td {
+            padding: 14px 12px;
+            color: #1F2937;
+            line-height: 1.4;
+        }
+        
+        .bloc-table td:first-child {
+            font-weight: 600;
+            color: #0047AB;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+        
+        .bloc-table td:last-child {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: #6B7280;
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="content-side">
+            <h1>Arquitectura: Similar a MVC</h1>
+            
+            <div class="feature-item">
+                <div class="feature-title">Patrón BLoC</div>
+                <div class="feature-desc">Organización del código similar al MVC visto en el ciclo: separar vista, lógica y datos.</div>
+            </div>
+            
+            <div class="feature-item">
+                <div class="feature-title">Separación Clara</div>
+                <div class="feature-desc">Archivos independientes para pantallas (UI) y para la lógica que procesa las acciones.</div>
+            </div>
+            
+            <div class="feature-item">
+                <div class="feature-title">Fácil Mantenimiento</div>
+                <div class="feature-desc">Si hay que modificar algo, es sencillo localizar dónde hacerlo sin afectar otras partes.</div>
+            </div>
+        </div>
+        
+        <div class="table-side">
+            <h2 style="font-size: 24px; color: #0047AB; margin-bottom: 25px; text-align: center;">Comparación MVC vs BLoC</h2>
+            <table class="bloc-table">
+                <thead>
+                    <tr>
+                        <th>MVC (del ciclo)</th>
+                        <th>BLoC (Flutter)</th>
+                        <th>Función</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Vista</td>
+                        <td>Widget / UI</td>
+                        <td style="font-family: inherit; font-size: 15px;">Lo que ve el usuario</td>
+                    </tr>
+                    <tr>
+                        <td>Controlador</td>
+                        <td>BLoC</td>
+                        <td style="font-family: inherit; font-size: 15px;">Procesa acciones y lógica</td>
+                    </tr>
+                    <tr>
+                        <td>Modelo</td>
+                        <td>Estado</td>
+                        <td style="font-family: inherit; font-size: 15px;">Los datos del momento</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 25px; font-size: 16px; color: #6B7280; text-align: center; font-style: italic;">
+                La misma filosofía de separación de responsabilidades, adaptada a Flutter.
+            </p>
+        </div>
+        
+        <div class="page-number">10</div>
+    </div>
+</body>
+</html>

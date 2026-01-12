@@ -214,9 +214,7 @@ cp ../docs/guias_usuario/guia_tutor.md Guia-Tutores.md
 cp ../docs/guias_usuario/guia_administrador.md Guia-Administradores.md
 
 # Documentación técnica
-cp ../docs/arquitectura/login.md Arquitectura-Autenticacion.md
-cp ../docs/arquitectura/registro_usuarios_por_roles.md Registro-Usuarios.md
-cp ../docs/despliegue/guia_despliegue_vps_debian.md Guia-Despliegue.md
+cp ../wiki_setup/Arquitectura-Autenticacion.md Arquitectura-Autenticacion.md
 ```
 
 ### 3. Publica los Cambios

@@ -153,7 +153,8 @@ function Copy-TechnicalDocs {
         @{Source = "..\..\docs\01_ARQUITECTURA.md"; Dest = "01-Arquitectura.md"},
         @{Source = "..\..\docs\02_BASE_DE_DATOS.md"; Dest = "02-Base-de-Datos.md"},
         @{Source = "..\..\docs\03_GUIA_DESARROLLO.md"; Dest = "03-Guia-Desarrollo.md"},
-        @{Source = "..\..\docs\04_ESTRUCTURA_CODIGO.md"; Dest = "04-Estructura-Codigo.md"}
+        @{Source = "..\..\docs\04_ESTRUCTURA_CODIGO.md"; Dest = "04-Estructura-Codigo.md"},
+        @{Source = "..\Arquitectura-Autenticacion.md"; Dest = "Arquitectura-Autenticacion.md"}
     )
     
     foreach ($doc in $docs) {

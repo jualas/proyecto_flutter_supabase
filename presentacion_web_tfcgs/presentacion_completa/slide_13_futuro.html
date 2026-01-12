@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            color: #2F4F4F;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+            padding: 50px 60px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h1 {
+            font-size: 44px;
+            font-weight: 700;
+            color: #0047AB;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .intro-text {
+            font-size: 20px;
+            color: #4B5563;
+            margin-bottom: 35px;
+            max-width: 900px;
+            line-height: 1.5;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            flex-grow: 1;
+        }
+        
+        .feature-card {
+            background: #F9FAFB;
+            padding: 30px 25px;
+            border-top: 5px solid #10B981;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .feature-icon {
+            font-size: 40px;
+            color: #10B981;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 15px;
+        }
+        
+        .feature-desc {
+            font-size: 16px;
+            color: #4B5563;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        
+        .highlight {
+            background: #EFF6FF;
+            border-top-color: #0047AB;
+        }
+        
+        .highlight .feature-icon {
+            color: #0047AB;
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <h1>Líneas de Trabajo Futuras</h1>
+        
+        <div class="intro-text">
+            El sistema está diseñado para escalar y evolucionar. Estas son las mejoras prioritarias identificadas.
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card highlight">
+                <div class="feature-icon"><i class="fas fa-file-signature"></i></div>
+                <div class="feature-title">PDF con Firma Digital</div>
+                <div class="feature-desc">Generar el anteproyecto en PDF y permitir la firma digital de tutor y alumno. El documento queda guardado con ambas firmas, eliminando el papel.</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                <div class="feature-title">Asistente IA (MCP + LLM)</div>
+                <div class="feature-desc">Servidor MCP conectado a LLMs para ofrecer recomendaciones inteligentes a los alumnos sobre sus tareas y documentación.</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-id-card"></i></div>
+                <div class="feature-title">Login Institucional</div>
+                <div class="feature-desc">Integración con el sistema SSO de murciaeduca.es para un acceso unificado con las credenciales del centro educativo.</div>
+            </div>
+        </div>
+        
+        <div class="page-number">13</div>
+    </div>
+</body>
+</html>

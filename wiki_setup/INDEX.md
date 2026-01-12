@@ -94,9 +94,7 @@
 
 📂 Documentación Técnica
 │
-├── 🔐 login.md                          → Arquitectura-Autenticacion
-├── 📝 registro_usuarios_por_roles.md    → Registro-Usuarios
-└── 🚀 guia_despliegue_vps_debian.md    → Guia-Despliegue
+└── 🔐 Arquitectura-Autenticacion.md     → Arquitectura-Autenticacion
 ```
 
 ---

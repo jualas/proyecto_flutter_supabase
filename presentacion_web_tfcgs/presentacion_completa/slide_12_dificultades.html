@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            color: #2F4F4F;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+            padding: 50px 60px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h1 {
+            font-size: 40px;
+            font-weight: 700;
+            color: #0047AB;
+            margin-bottom: 35px;
+            line-height: 1.2;
+        }
+        
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            flex-grow: 1;
+        }
+        
+        .challenge-card {
+            background: #F9FAFB;
+            padding: 25px;
+            border-top: 5px solid #10B981;
+        }
+        
+        .challenge-icon {
+            font-size: 28px;
+            color: #10B981;
+            margin-bottom: 15px;
+        }
+        
+        .challenge-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 12px;
+        }
+        
+        .challenge-desc {
+            font-size: 16px;
+            color: #4B5563;
+            line-height: 1.5;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #EFF6FF;
+            color: #0047AB;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <h1>Desafíos Superados y Aprendizajes</h1>
+        
+        <div class="challenges-grid">
+            <div class="challenge-card">
+                <div class="challenge-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div class="challenge-title">Flutter (Frontend)</div>
+                <div class="challenge-desc">Framework multiplataforma no cubierto en el ciclo. Aprendizaje autodidacta para desarrollo de UI moderna y responsive.</div>
+                <span class="badge">No visto en el ciclo</span>
+            </div>
+            
+            <div class="challenge-card">
+                <div class="challenge-icon"><i class="fas fa-server"></i></div>
+                <div class="challenge-title">Supabase (Backend)</div>
+                <div class="challenge-desc">Framework BaaS con PostgreSQL. En el ciclo no se trabajó con frameworks para backend ni persistencia de datos estructurada.</div>
+                <span class="badge">No visto en el ciclo</span>
+            </div>
+            
+            <div class="challenge-card">
+                <div class="challenge-icon"><i class="fab fa-git-alt"></i></div>
+                <div class="challenge-title">Git y GitHub</div>
+                <div class="challenge-desc">Control de versiones con repositorio local y remoto (GitHub). Gestión de ramas para desarrollo organizado y colaborativo.</div>
+                <span class="badge">Profundización</span>
+            </div>
+            
+            <div class="challenge-card">
+                <div class="challenge-icon"><i class="fas fa-docker"></i></div>
+                <div class="challenge-title">Docker y Despliegue</div>
+                <div class="challenge-desc">Contenedorización para el servidor web y despliegue en producción. Tecnología nueva aprendida para el proyecto.</div>
+                <span class="badge">No visto en el ciclo</span>
+            </div>
+        </div>
+        
+        <div class="page-number">12</div>
+    </div>
+</body>
+</html>

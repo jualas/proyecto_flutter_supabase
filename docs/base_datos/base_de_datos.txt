@@ -1,0 +1,363 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.activity_log (
+  id integer NOT NULL DEFAULT nextval('activity_log_id_seq'::regclass),
+  user_id integer NOT NULL,
+  action character varying NOT NULL,
+  entity_type character varying NOT NULL,
+  entity_id integer NOT NULL,
+  old_values json,
+  new_values json,
+  ip_address character varying,
+  user_agent text,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT activity_log_pkey PRIMARY KEY (id),
+  CONSTRAINT activity_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.anteproject_comments (
+  id integer NOT NULL DEFAULT nextval('anteproject_comments_id_seq'::regclass),
+  anteproject_id integer NOT NULL,
+  author_id integer NOT NULL,
+  content text NOT NULL,
+  is_internal boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  section USER-DEFINED NOT NULL DEFAULT 'general'::anteproject_section,
+  CONSTRAINT anteproject_comments_pkey PRIMARY KEY (id),
+  CONSTRAINT anteproject_comments_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT anteproject_comments_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.anteproject_evaluation_criteria (
+  id integer NOT NULL DEFAULT nextval('anteproject_evaluation_criteria_id_seq'::regclass),
+  name character varying NOT NULL,
+  description text,
+  max_score numeric DEFAULT 10.0,
+  is_active boolean DEFAULT true,
+  display_order integer DEFAULT 0,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT anteproject_evaluation_criteria_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.anteproject_evaluations (
+  id integer NOT NULL DEFAULT nextval('anteproject_evaluations_id_seq'::regclass),
+  anteproject_id integer NOT NULL,
+  criteria_id integer NOT NULL,
+  score numeric,
+  comments text,
+  evaluated_by integer NOT NULL,
+  evaluated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT anteproject_evaluations_pkey PRIMARY KEY (id),
+  CONSTRAINT anteproject_evaluations_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT anteproject_evaluations_criteria_id_fkey FOREIGN KEY (criteria_id) REFERENCES public.anteproject_evaluation_criteria(id),
+  CONSTRAINT anteproject_evaluations_evaluated_by_fkey FOREIGN KEY (evaluated_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.anteproject_messages (
+  id integer NOT NULL DEFAULT nextval('anteproject_messages_id_seq'::regclass),
+  anteproject_id integer NOT NULL,
+  sender_id integer NOT NULL,
+  content text NOT NULL,
+  is_read boolean DEFAULT false,
+  read_at timestamp without time zone,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  thread_id integer,
+  CONSTRAINT anteproject_messages_pkey PRIMARY KEY (id),
+  CONSTRAINT anteproject_messages_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT anteproject_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id),
+  CONSTRAINT anteproject_messages_thread_id_fkey FOREIGN KEY (thread_id) REFERENCES public.conversation_threads(id)
+);
+CREATE TABLE public.anteproject_objectives (
+  id integer NOT NULL DEFAULT nextval('anteproject_objectives_id_seq'::regclass),
+  anteproject_id integer NOT NULL,
+  objective_id integer NOT NULL,
+  is_selected boolean DEFAULT true,
+  custom_description text,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT anteproject_objectives_pkey PRIMARY KEY (id),
+  CONSTRAINT anteproject_objectives_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT anteproject_objectives_objective_id_fkey FOREIGN KEY (objective_id) REFERENCES public.dam_objectives(id)
+);
+CREATE TABLE public.anteproject_students (
+  id integer NOT NULL DEFAULT nextval('anteproject_students_id_seq'::regclass),
+  anteproject_id integer NOT NULL,
+  student_id integer NOT NULL,
+  is_lead_author boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT anteproject_students_pkey PRIMARY KEY (id),
+  CONSTRAINT anteproject_students_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT anteproject_students_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.anteprojects (
+  id integer NOT NULL DEFAULT nextval('anteprojects_id_seq'::regclass),
+  title character varying NOT NULL,
+  project_type USER-DEFINED NOT NULL,
+  description text NOT NULL,
+  academic_year character varying NOT NULL,
+  institution character varying DEFAULT 'CIFP Carlos III de Cartagena'::character varying,
+  modality character varying DEFAULT 'modalidad distancia'::character varying,
+  location character varying DEFAULT 'Cartagena'::character varying,
+  expected_results json NOT NULL,
+  timeline json NOT NULL,
+  status USER-DEFINED NOT NULL DEFAULT 'draft'::anteproject_status,
+  tutor_id integer,
+  submitted_at timestamp without time zone,
+  reviewed_at timestamp without time zone,
+  project_id integer UNIQUE,
+  tutor_comments text,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  objectives text,
+  github_repository_url character varying,
+  CONSTRAINT anteprojects_pkey PRIMARY KEY (id),
+  CONSTRAINT anteprojects_tutor_id_fkey FOREIGN KEY (tutor_id) REFERENCES public.users(id),
+  CONSTRAINT fk_anteproject_project FOREIGN KEY (project_id) REFERENCES public.projects(id)
+);
+CREATE TABLE public.comments (
+  id integer NOT NULL DEFAULT nextval('comments_id_seq'::regclass),
+  task_id integer NOT NULL,
+  author_id integer NOT NULL,
+  content text NOT NULL,
+  is_internal boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT comments_pkey PRIMARY KEY (id),
+  CONSTRAINT comments_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT comments_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.conversation_threads (
+  id integer NOT NULL DEFAULT nextval('conversation_threads_id_seq'::regclass),
+  project_id integer,
+  anteproject_id integer,
+  title character varying NOT NULL,
+  created_by integer NOT NULL,
+  last_message_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  is_archived boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT conversation_threads_pkey PRIMARY KEY (id),
+  CONSTRAINT conversation_threads_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
+  CONSTRAINT conversation_threads_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT conversation_threads_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.dam_objectives (
+  id integer NOT NULL DEFAULT nextval('dam_objectives_id_seq'::regclass),
+  title character varying NOT NULL,
+  description text NOT NULL,
+  is_active boolean DEFAULT true,
+  display_order integer DEFAULT 0,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT dam_objectives_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.file_versions (
+  id integer NOT NULL DEFAULT nextval('file_versions_id_seq'::regclass),
+  original_file_id integer NOT NULL,
+  version_number integer NOT NULL,
+  filename character varying NOT NULL,
+  file_path character varying NOT NULL,
+  file_size bigint NOT NULL,
+  uploaded_by integer NOT NULL,
+  upload_reason character varying,
+  uploaded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT file_versions_pkey PRIMARY KEY (id),
+  CONSTRAINT file_versions_original_file_id_fkey FOREIGN KEY (original_file_id) REFERENCES public.files(id),
+  CONSTRAINT file_versions_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.files (
+  id integer NOT NULL DEFAULT nextval('files_id_seq'::regclass),
+  filename character varying NOT NULL,
+  original_filename character varying NOT NULL,
+  file_path character varying NOT NULL,
+  file_size bigint NOT NULL,
+  mime_type character varying NOT NULL,
+  uploaded_by integer NOT NULL,
+  uploaded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  attachable_type USER-DEFINED NOT NULL,
+  attachable_id integer NOT NULL,
+  CONSTRAINT files_pkey PRIMARY KEY (id),
+  CONSTRAINT files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.milestones (
+  id integer NOT NULL DEFAULT nextval('milestones_id_seq'::regclass),
+  project_id integer NOT NULL,
+  milestone_number integer NOT NULL,
+  title character varying NOT NULL,
+  description text NOT NULL,
+  planned_date date NOT NULL,
+  completed_date date,
+  status USER-DEFINED NOT NULL DEFAULT 'pending'::milestone_status,
+  milestone_type USER-DEFINED DEFAULT 'execution'::milestone_type,
+  expected_deliverables json,
+  review_comments text,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT milestones_pkey PRIMARY KEY (id),
+  CONSTRAINT milestones_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id)
+);
+CREATE TABLE public.notifications (
+  id integer NOT NULL DEFAULT nextval('notifications_id_seq'::regclass),
+  user_id integer NOT NULL,
+  type character varying NOT NULL,
+  title character varying NOT NULL,
+  message text NOT NULL,
+  action_url character varying,
+  metadata json,
+  read_at timestamp without time zone,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.pdf_templates (
+  id integer NOT NULL DEFAULT nextval('pdf_templates_id_seq'::regclass),
+  name character varying NOT NULL,
+  template_type USER-DEFINED NOT NULL,
+  template_content text NOT NULL,
+  is_active boolean DEFAULT true,
+  version character varying DEFAULT '1.0'::character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pdf_templates_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  email text NOT NULL UNIQUE,
+  full_name text,
+  role text DEFAULT 'student'::text,
+  status text DEFAULT 'active'::text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT profiles_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.project_messages (
+  id integer NOT NULL DEFAULT nextval('project_messages_id_seq'::regclass),
+  project_id integer NOT NULL,
+  sender_id integer NOT NULL,
+  content text NOT NULL,
+  is_read boolean DEFAULT false,
+  read_at timestamp without time zone,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  thread_id integer,
+  CONSTRAINT project_messages_pkey PRIMARY KEY (id),
+  CONSTRAINT project_messages_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
+  CONSTRAINT project_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id),
+  CONSTRAINT project_messages_thread_id_fkey FOREIGN KEY (thread_id) REFERENCES public.conversation_threads(id)
+);
+CREATE TABLE public.project_students (
+  id integer NOT NULL DEFAULT nextval('project_students_id_seq'::regclass),
+  project_id integer NOT NULL,
+  student_id integer NOT NULL,
+  is_lead boolean DEFAULT false,
+  joined_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT project_students_pkey PRIMARY KEY (id),
+  CONSTRAINT project_students_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
+  CONSTRAINT project_students_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.projects (
+  id integer NOT NULL DEFAULT nextval('projects_id_seq'::regclass),
+  title character varying NOT NULL,
+  description text NOT NULL,
+  status USER-DEFINED NOT NULL DEFAULT 'draft'::project_status,
+  start_date date,
+  estimated_end_date date,
+  actual_end_date date,
+  tutor_id integer NOT NULL,
+  anteproject_id integer UNIQUE,
+  github_repository_url character varying,
+  github_main_branch character varying DEFAULT 'main'::character varying,
+  last_activity_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT projects_pkey PRIMARY KEY (id),
+  CONSTRAINT projects_tutor_id_fkey FOREIGN KEY (tutor_id) REFERENCES public.users(id),
+  CONSTRAINT projects_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id)
+);
+CREATE TABLE public.review_dates (
+  id integer NOT NULL DEFAULT nextval('review_dates_id_seq'::regclass),
+  schedule_id integer NOT NULL,
+  date timestamp with time zone NOT NULL,
+  description text NOT NULL,
+  milestone_reference text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT review_dates_pkey PRIMARY KEY (id),
+  CONSTRAINT review_dates_schedule_id_fkey FOREIGN KEY (schedule_id) REFERENCES public.schedules(id)
+);
+CREATE TABLE public.schedules (
+  id integer NOT NULL DEFAULT nextval('schedules_id_seq'::regclass),
+  anteproject_id integer NOT NULL UNIQUE,
+  tutor_id integer NOT NULL,
+  start_date timestamp with time zone NOT NULL,
+  final_date timestamp with time zone NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT schedules_pkey PRIMARY KEY (id),
+  CONSTRAINT schedules_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id),
+  CONSTRAINT schedules_tutor_id_fkey FOREIGN KEY (tutor_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.system_settings (
+  id integer NOT NULL DEFAULT nextval('system_settings_id_seq'::regclass),
+  setting_key character varying NOT NULL UNIQUE,
+  setting_value text NOT NULL,
+  setting_type USER-DEFINED DEFAULT 'string'::setting_type,
+  description text,
+  is_editable boolean DEFAULT true,
+  updated_by integer,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT system_settings_pkey PRIMARY KEY (id),
+  CONSTRAINT system_settings_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.task_assignees (
+  id integer NOT NULL DEFAULT nextval('task_assignees_id_seq'::regclass),
+  task_id integer NOT NULL,
+  user_id integer NOT NULL,
+  assigned_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  assigned_by integer NOT NULL,
+  CONSTRAINT task_assignees_pkey PRIMARY KEY (id),
+  CONSTRAINT task_assignees_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT task_assignees_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT task_assignees_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.tasks (
+  id integer NOT NULL DEFAULT nextval('tasks_id_seq'::regclass),
+  project_id integer,
+  milestone_id integer,
+  title character varying NOT NULL,
+  description text NOT NULL,
+  status USER-DEFINED NOT NULL DEFAULT 'pending'::task_status,
+  due_date date,
+  completed_at timestamp without time zone,
+  kanban_position double precision DEFAULT 0,
+  estimated_hours integer,
+  actual_hours integer,
+  complexity USER-DEFINED DEFAULT 'medium'::task_complexity,
+  tags json,
+  is_auto_generated boolean DEFAULT false,
+  generation_source character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  anteproject_id integer,
+  CONSTRAINT tasks_pkey PRIMARY KEY (id),
+  CONSTRAINT tasks_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
+  CONSTRAINT tasks_milestone_id_fkey FOREIGN KEY (milestone_id) REFERENCES public.milestones(id),
+  CONSTRAINT tasks_anteproject_id_fkey FOREIGN KEY (anteproject_id) REFERENCES public.anteprojects(id)
+);
+CREATE TABLE public.users (
+  id integer NOT NULL DEFAULT nextval('users_id_seq'::regclass),
+  full_name character varying NOT NULL,
+  email character varying NOT NULL UNIQUE,
+  nre character varying UNIQUE,
+  role USER-DEFINED NOT NULL DEFAULT 'student'::user_role,
+  phone character varying,
+  biography text,
+  status USER-DEFINED NOT NULL DEFAULT 'active'::user_status,
+  password_hash character varying,
+  email_verified_at timestamp without time zone,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  specialty character varying,
+  tutor_id integer,
+  specialization character varying,
+  academic_year character varying DEFAULT '2024-2025'::character varying,
+  CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_tutor_id_fkey FOREIGN KEY (tutor_id) REFERENCES public.users(id)
+);

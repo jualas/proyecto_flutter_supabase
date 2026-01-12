@@ -2,21 +2,16 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'project.g.dart';
 
+/// Modelo que representa un proyecto en el sistema de gestión personal.
 @JsonSerializable()
 class Project {
   final int id;
   final String title;
   final String description;
   final ProjectStatus status;
-  final DateTime? startDate;
-  final DateTime? estimatedEndDate;
-  final DateTime? actualEndDate;
-  final int tutorId;
-  final int? anteprojectId;
-  final String? githubRepositoryUrl;
-  final String githubMainBranch;
-  final DateTime? lastActivityAt;
+  @JsonKey(name: 'createdAt')
   final DateTime createdAt;
+  @JsonKey(name: 'updatedAt')
   final DateTime updatedAt;
 
   const Project({
@@ -24,14 +19,6 @@ class Project {
     required this.title,
     required this.description,
     required this.status,
-    this.startDate,
-    this.estimatedEndDate,
-    this.actualEndDate,
-    required this.tutorId,
-    this.anteprojectId,
-    this.githubRepositoryUrl,
-    required this.githubMainBranch,
-    this.lastActivityAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -44,14 +31,6 @@ class Project {
     String? title,
     String? description,
     ProjectStatus? status,
-    DateTime? startDate,
-    DateTime? estimatedEndDate,
-    DateTime? actualEndDate,
-    int? tutorId,
-    int? anteprojectId,
-    String? githubRepositoryUrl,
-    String? githubMainBranch,
-    DateTime? lastActivityAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -60,16 +39,26 @@ class Project {
       title: title ?? this.title,
       description: description ?? this.description,
       status: status ?? this.status,
-      startDate: startDate ?? this.startDate,
-      estimatedEndDate: estimatedEndDate ?? this.estimatedEndDate,
-      actualEndDate: actualEndDate ?? this.actualEndDate,
-      tutorId: tutorId ?? this.tutorId,
-      anteprojectId: anteprojectId ?? this.anteprojectId,
-      githubRepositoryUrl: githubRepositoryUrl ?? this.githubRepositoryUrl,
-      githubMainBranch: githubMainBranch ?? this.githubMainBranch,
-      lastActivityAt: lastActivityAt ?? this.lastActivityAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  /// Crea un nuevo proyecto con valores por defecto
+  factory Project.create({
+    required int id,
+    required String title,
+    String description = '',
+    ProjectStatus status = ProjectStatus.planning,
+  }) {
+    final now = DateTime.now();
+    return Project(
+      id: id,
+      title: title,
+      description: description,
+      status: status,
+      createdAt: now,
+      updatedAt: now,
     );
   }
 
@@ -88,53 +77,47 @@ class Project {
   int get hashCode => id.hashCode;
 }
 
+/// Estados posibles de un proyecto.
 enum ProjectStatus {
-  @JsonValue('draft')
-  draft,
   @JsonValue('planning')
   planning,
   @JsonValue('development')
   development,
-  @JsonValue('review')
-  review,
   @JsonValue('completed')
   completed,
+  @JsonValue('archived')
+  archived,
 }
 
 extension ProjectStatusExtension on ProjectStatus {
   String get displayName {
     switch (this) {
-      case ProjectStatus.draft:
-        return 'Borrador';
       case ProjectStatus.planning:
         return 'Planificación';
       case ProjectStatus.development:
         return 'En Desarrollo';
-      case ProjectStatus.review:
-        return 'En Revisión';
       case ProjectStatus.completed:
         return 'Completado';
+      case ProjectStatus.archived:
+        return 'Archivado';
     }
   }
 
-  String get shortName {
+  String get dbValue {
     switch (this) {
-      case ProjectStatus.draft:
-        return 'Borrador';
       case ProjectStatus.planning:
-        return 'Planificación';
+        return 'planning';
       case ProjectStatus.development:
-        return 'Desarrollo';
-      case ProjectStatus.review:
-        return 'Revisión';
+        return 'development';
       case ProjectStatus.completed:
-        return 'Completado';
+        return 'completed';
+      case ProjectStatus.archived:
+        return 'archived';
     }
   }
 
   bool get isCompleted => this == ProjectStatus.completed;
   bool get isInDevelopment => this == ProjectStatus.development;
   bool get isInPlanning => this == ProjectStatus.planning;
-  bool get isInReview => this == ProjectStatus.review;
-  bool get isDraft => this == ProjectStatus.draft;
+  bool get isArchived => this == ProjectStatus.archived;
 }

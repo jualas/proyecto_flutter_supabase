@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../blocs/auth_bloc.dart';
-import '../../l10n/app_localizations.dart';
-import '../../models/task.dart';
-import '../../models/user.dart';
 import '../../blocs/tasks_bloc.dart';
-import '../../utils/task_localizations.dart';
-import '../../widgets/navigation/app_bar_actions.dart';
+import '../../models/models.dart';
+import '../../themes/app_theme.dart';
 import '../forms/task_form.dart';
 
 class TasksList extends StatefulWidget {
-  final int? projectId;
-  final bool isEmbedded;
+  final int projectId;
 
   const TasksList({
     super.key,
     required this.projectId,
-    this.isEmbedded = false,
   });
 
   @override
@@ -26,371 +19,113 @@ class TasksList extends StatefulWidget {
 }
 
 class _TasksListState extends State<TasksList> {
-  User? _currentUser;
-
   @override
   void initState() {
     super.initState();
-    _loadCurrentUser();
-    // Cargar tareas al inicializar
     context.read<TasksBloc>().add(
       TasksLoadRequested(projectId: widget.projectId),
     );
   }
 
-  Future<void> _loadCurrentUser() async {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated) {
-      setState(() {
-        _currentUser = authState.user;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    final body = BlocBuilder<TasksBloc, TasksState>(
-        builder: (context, state) {
-          if (state is TasksLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is TasksFailure) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.messageKey,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<TasksBloc>().add(
-                      TasksLoadRequested(projectId: widget.projectId),
-                    ),
-                    child: Text(l10n.retry),
-                  ),
-                ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista de Tareas'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/projects'),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.view_kanban),
+            onPressed: () => context.go('/projects/${widget.projectId}/kanban'),
+            tooltip: 'Ver como Kanban',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<TasksBloc>().add(
+              TasksLoadRequested(projectId: widget.projectId),
+            ),
+            tooltip: 'Actualizar',
+          ),
+        ],
+      ),
+      body: BlocConsumer<TasksBloc, TasksState>(
+        listener: (context, state) {
+          if (state is TasksFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
               ),
             );
-          } else if (state is TasksLoaded) {
-            final tasks = state.tasks;
-
-            if (tasks.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.task_alt, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.tasksListEmpty,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _createTask,
-                      icon: const Icon(Icons.add),
-                      label: Text(l10n.taskCreateButton),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            // Agrupar tareas por estado
-            final tasksByStatus = _groupTasksByStatus(tasks);
-
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TasksBloc>().add(
-                  TasksLoadRequested(projectId: widget.projectId),
-                );
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _getTotalSections(tasksByStatus),
-                itemBuilder: (context, index) {
-                  return _buildSectionByIndex(index, tasksByStatus, l10n);
-                },
+          } else if (state is TaskOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.success,
               ),
             );
           }
-
-          return const Center(child: CircularProgressIndicator());
         },
-      );
+        builder: (context, state) {
+          if (state is TasksLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-    if (widget.isEmbedded) {
-      return body;
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.tasksListTitle),
-          actions: _currentUser != null
-              ? AppBarActions.build(
-                  context,
-                  _currentUser!,
-                  additionalActions: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: () => context.read<TasksBloc>().add(
-                        TasksLoadRequested(projectId: widget.projectId),
-                      ),
-                      tooltip: l10n.tasksListRefresh,
-                    ),
-                  ],
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () => context.read<TasksBloc>().add(
-                      TasksLoadRequested(projectId: widget.projectId),
-                    ),
-                    tooltip: l10n.tasksListRefresh,
-                  ),
-                ],
-        ),
-        body: body,
-        floatingActionButton: FloatingActionButton(
-          onPressed: _createTask,
-          child: const Icon(Icons.add),
-        ),
-      );
-    }
+          if (state is TasksLoaded) {
+            if (state.tasks.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            final tasksByStatus = _groupTasksByStatus(state.tasks);
+            return _buildTasksList(tasksByStatus);
+          }
+
+          return _buildEmptyState();
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createTask,
+        child: const Icon(Icons.add),
+      ),
+    );
   }
 
-  Widget _buildTaskCard(Task task, AppLocalizations l10n) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text(
-          task.title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            decoration: task.status.isCompleted
-                ? TextDecoration.lineThrough
-                : null,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.task_alt,
+            size: 80,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(task.description),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                _buildStatusChip(task.status, l10n),
-                const SizedBox(width: 8),
-                _buildComplexityChip(task.complexity, l10n),
-                if (task.estimatedHours != null) ...[
-                  const SizedBox(width: 8),
-                  Chip(
-                    label: Text('${task.estimatedHours}h'),
-                    backgroundColor: Colors.blue[100],
-                    labelStyle: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ],
+          const SizedBox(height: 16),
+          Text(
+            'No hay tareas',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: AppColors.textSecondary,
             ),
-            if (task.dueDate != null) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Vence: ${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) => _handleTaskAction(value, task),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  const Icon(Icons.edit),
-                  const SizedBox(width: 8),
-                  Text(l10n.edit),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  const Icon(Icons.delete, color: Colors.red),
-                  const SizedBox(width: 8),
-                  Text(l10n.delete, style: const TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
-        onTap: () => _viewTaskDetails(task),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(TaskStatus status, AppLocalizations l10n) {
-    Color backgroundColor;
-    Color textColor = Colors.white;
-
-    switch (status) {
-      case TaskStatus.pending:
-        backgroundColor = Colors.orange[100]!;
-        textColor = Colors.orange[800]!;
-        break;
-      case TaskStatus.inProgress:
-        backgroundColor = Colors.blue[100]!;
-        textColor = Colors.blue[800]!;
-        break;
-      case TaskStatus.completed:
-        backgroundColor = Colors.green[100]!;
-        textColor = Colors.green[800]!;
-        break;
-    }
-
-    return Chip(
-      label: Text(
-        TaskLocalizations.getTaskStatusDisplayName(status, l10n),
-        style: TextStyle(
-          fontSize: 12,
-          color: textColor,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      backgroundColor: backgroundColor,
-    );
-  }
-
-  Widget _buildComplexityChip(
-    TaskComplexity complexity,
-    AppLocalizations l10n,
-  ) {
-    Color backgroundColor;
-    Color textColor = Colors.white;
-
-    switch (complexity) {
-      case TaskComplexity.simple:
-        backgroundColor = Colors.green[100]!;
-        textColor = Colors.green[800]!;
-        break;
-      case TaskComplexity.medium:
-        backgroundColor = Colors.yellow[100]!;
-        textColor = Colors.yellow[800]!;
-        break;
-      case TaskComplexity.complex:
-        backgroundColor = Colors.red[100]!;
-        textColor = Colors.red[800]!;
-        break;
-    }
-
-    return Chip(
-      label: Text(
-        TaskLocalizations.getTaskComplexityDisplayName(complexity, l10n),
-        style: TextStyle(
-          fontSize: 12,
-          color: textColor,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      backgroundColor: backgroundColor,
-    );
-  }
-
-  void _createTask() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: context.read<TasksBloc>(),
-          child: TaskForm(projectId: widget.projectId),
-        ),
-      ),
-    );
-  }
-
-  void _editTask(Task task) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: context.read<TasksBloc>(),
-          child: TaskForm(projectId: widget.projectId, task: task),
-        ),
-      ),
-    );
-  }
-
-  void _viewTaskDetails(Task task) {
-    if (_currentUser != null) {
-      context.go('/tasks/${task.id}', extra: _currentUser);
-    } else {
-      // Cargar usuario si no está disponible
-      final authState = context.read<AuthBloc>().state;
-      if (authState is AuthAuthenticated) {
-        context.go('/tasks/${task.id}', extra: authState.user);
-      } else {
-        // Fallback: intentar obtener usuario del AuthBloc
-        final authState = context.read<AuthBloc>().state;
-        if (authState is AuthAuthenticated) {
-          context.go('/tasks/${task.id}', extra: authState.user);
-        }
-        // Si no hay usuario autenticado, no navegar (no debería pasar)
-      }
-    }
-  }
-
-  void _handleTaskAction(String action, Task task) {
-    switch (action) {
-      case 'edit':
-        _editTask(task);
-        break;
-      case 'delete':
-        _showDeleteConfirmation(task);
-        break;
-    }
-  }
-
-  void _showDeleteConfirmation(Task task) {
-    final l10n = AppLocalizations.of(context)!;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.delete),
-        content: Text(
-          '¿Estás seguro de que quieres eliminar la tarea "${task.title}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<TasksBloc>().add(TaskDeleteRequested(task.id));
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(l10n.delete),
+          const SizedBox(height: 8),
+          Text(
+            'Crea tu primera tarea para comenzar',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _createTask,
+            icon: const Icon(Icons.add),
+            label: const Text('Crear Tarea'),
           ),
         ],
       ),
     );
   }
 
-  /// Agrupa las tareas por estado
   Map<TaskStatus, List<Task>> _groupTasksByStatus(List<Task> tasks) {
     final Map<TaskStatus, List<Task>> grouped = {
       TaskStatus.pending: [],
@@ -402,125 +137,356 @@ class _TasksListState extends State<TasksList> {
       grouped[task.status]?.add(task);
     }
 
+    // Ordenar por posición Kanban dentro de cada grupo
+    for (final status in TaskStatus.values) {
+      grouped[status]?.sort((a, b) => a.kanbanPosition.compareTo(b.kanbanPosition));
+    }
+
     return grouped;
   }
 
-  /// Obtiene el número total de secciones (encabezados + tareas)
-  int _getTotalSections(Map<TaskStatus, List<Task>> tasksByStatus) {
-    int count = 0;
-    for (final tasks in tasksByStatus.values) {
-      if (tasks.isNotEmpty) {
-        count += 1 + tasks.length; // 1 para el encabezado + tareas
-      }
-    }
-    return count;
+  Widget _buildTasksList(Map<TaskStatus, List<Task>> tasksByStatus) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<TasksBloc>().add(
+          TasksLoadRequested(projectId: widget.projectId),
+        );
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final status in TaskStatus.values)
+            if (tasksByStatus[status]!.isNotEmpty) ...[
+              _buildStatusHeader(status, tasksByStatus[status]!.length),
+              ...tasksByStatus[status]!.map((task) => _buildTaskCard(task)),
+              const SizedBox(height: 16),
+            ],
+        ],
+      ),
+    );
   }
 
-  /// Construye una sección o tarea según el índice
-  Widget _buildSectionByIndex(
-    int index,
-    Map<TaskStatus, List<Task>> tasksByStatus,
-    AppLocalizations l10n,
-  ) {
-    int currentIndex = 0;
-    
-    // Orden de estados: Pendiente, En Progreso, Completada
-    final statusOrder = [
-      TaskStatus.pending,
-      TaskStatus.inProgress,
-      TaskStatus.completed,
-    ];
-
-    for (final status in statusOrder) {
-      final tasks = tasksByStatus[status] ?? [];
-      if (tasks.isEmpty) continue;
-
-      // Encabezado de sección
-      if (index == currentIndex) {
-        return _buildStatusHeader(status, tasks.length, l10n);
-      }
-      currentIndex++;
-
-      // Tareas de esta sección
-      for (final task in tasks) {
-        if (index == currentIndex) {
-          return _buildTaskCard(task, l10n);
-        }
-        currentIndex++;
-      }
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  /// Construye el encabezado de una sección de estado
-  Widget _buildStatusHeader(
-    TaskStatus status,
-    int taskCount,
-    AppLocalizations l10n,
-  ) {
-    String title;
-    Color backgroundColor;
-    Color textColor;
+  Widget _buildStatusHeader(TaskStatus status, int count) {
+    final color = KanbanColors.getHeaderColor(status.dbValue);
+    final bgColor = KanbanColors.getBackgroundColor(status.dbValue);
     IconData icon;
 
     switch (status) {
       case TaskStatus.pending:
-        title = TaskLocalizations.getTaskStatusDisplayName(status, l10n);
-        backgroundColor = Colors.orange[100]!;
-        textColor = Colors.orange[800]!;
         icon = Icons.schedule;
         break;
       case TaskStatus.inProgress:
-        title = TaskLocalizations.getTaskStatusDisplayName(status, l10n);
-        backgroundColor = Colors.blue[100]!;
-        textColor = Colors.blue[800]!;
         icon = Icons.play_circle_outline;
         break;
       case TaskStatus.completed:
-        title = TaskLocalizations.getTaskStatusDisplayName(status, l10n);
-        backgroundColor = Colors.green[100]!;
-        textColor = Colors.green[800]!;
         icon = Icons.check_circle;
         break;
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 16, bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.only(top: 8, bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: textColor),
-          const SizedBox(width: 8),
+          Icon(icon, size: 24, color: color),
+          const SizedBox(width: 12),
           Text(
-            title,
+            status.displayName,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: textColor,
+              color: color,
             ),
           ),
           const Spacer(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: textColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: color,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              '$taskCount',
-              style: TextStyle(
-                fontSize: 12,
+              '$count',
+              style: const TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: textColor,
+                color: AppColors.textOnDark,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(Task task) {
+    final borderColor = KanbanColors.getBorderColor(task.status.dbValue);
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor.withValues(alpha: 0.3)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        title: Text(
+          task.title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            decoration: task.status.isCompleted ? TextDecoration.lineThrough : null,
+            color: task.status.isCompleted 
+                ? AppColors.textSecondary 
+                : AppColors.textPrimary,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (task.description.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                task.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                _buildComplexityChip(task.complexity),
+                if (task.estimatedHours != null)
+                  Chip(
+                    label: Text('${task.estimatedHours}h'),
+                    backgroundColor: AppColors.accentSecondary.withValues(alpha: 0.2),
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.accentPrimary,
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ...task.tags.take(3).map((tag) => Chip(
+                  label: Text(tag),
+                  backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.1),
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                )),
+              ],
+            ),
+            if (task.dueDate != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.event, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Vence: ${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isOverdue(task.dueDate!) 
+                          ? AppColors.error 
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) => _handleTaskAction(value, task),
+          itemBuilder: (context) => [
+            if (task.status != TaskStatus.completed)
+              PopupMenuItem(
+                value: 'complete',
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: AppColors.success),
+                    const SizedBox(width: 8),
+                    const Text('Marcar completada'),
+                  ],
+                ),
+              ),
+            if (task.status == TaskStatus.completed)
+              PopupMenuItem(
+                value: 'reopen',
+                child: Row(
+                  children: [
+                    Icon(Icons.replay, color: AppColors.warning),
+                    const SizedBox(width: 8),
+                    const Text('Reabrir'),
+                  ],
+                ),
+              ),
+            const PopupMenuItem(
+              value: 'edit',
+              child: Row(
+                children: [
+                  Icon(Icons.edit),
+                  SizedBox(width: 8),
+                  Text('Editar'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete, color: AppColors.error),
+                  SizedBox(width: 8),
+                  Text('Eliminar', style: TextStyle(color: AppColors.error)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        onTap: () => _editTask(task),
+      ),
+    );
+  }
+
+  Widget _buildComplexityChip(TaskComplexity complexity) {
+    Color color;
+    switch (complexity) {
+      case TaskComplexity.simple:
+        color = AppColors.success;
+        break;
+      case TaskComplexity.medium:
+        color = AppColors.warning;
+        break;
+      case TaskComplexity.complex:
+        color = AppColors.error;
+        break;
+    }
+
+    return Chip(
+      label: Text(complexity.displayName),
+      backgroundColor: color.withValues(alpha: 0.2),
+      labelStyle: TextStyle(
+        fontSize: 12,
+        color: color,
+        fontWeight: FontWeight.w600,
+      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  bool _isOverdue(DateTime dueDate) {
+    return dueDate.isBefore(DateTime.now()) && 
+           dueDate.day != DateTime.now().day;
+  }
+
+  void _handleTaskAction(String action, Task task) {
+    switch (action) {
+      case 'complete':
+        context.read<TasksBloc>().add(
+          TaskStatusUpdateRequested(
+            taskId: task.id,
+            status: TaskStatus.completed,
+            projectId: widget.projectId,
+          ),
+        );
+        break;
+      case 'reopen':
+        context.read<TasksBloc>().add(
+          TaskStatusUpdateRequested(
+            taskId: task.id,
+            status: TaskStatus.pending,
+            projectId: widget.projectId,
+          ),
+        );
+        break;
+      case 'edit':
+        _editTask(task);
+        break;
+      case 'delete':
+        _deleteTask(task);
+        break;
+    }
+  }
+
+  Future<void> _editTask(Task task) async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: TaskForm(
+            projectId: widget.projectId,
+            task: task,
+            onSave: (updatedTask) {
+              context.read<TasksBloc>().add(TaskUpdateRequested(updatedTask));
+              Navigator.of(dialogContext).pop();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _deleteTask(Task task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Tarea'),
+        content: Text('¿Estás seguro de que quieres eliminar "${task.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<TasksBloc>().add(
+                TaskDeleteRequested(id: task.id, projectId: widget.projectId),
+              );
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createTask() async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: TaskForm(
+            projectId: widget.projectId,
+            onSave: (task) {
+              context.read<TasksBloc>().add(
+                TaskCreateRequested(
+                  projectId: widget.projectId,
+                  title: task.title,
+                  description: task.description,
+                  complexity: task.complexity,
+                  estimatedHours: task.estimatedHours,
+                  dueDate: task.dueDate,
+                  tags: task.tags,
+                ),
+              );
+              Navigator.of(dialogContext).pop();
+            },
+          ),
+        ),
       ),
     );
   }

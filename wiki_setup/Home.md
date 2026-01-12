@@ -62,8 +62,6 @@ Para desarrolladores y personal técnico:
 - 🔧 [**Guía de Desarrollo**](03-Guia-Desarrollo) - Configuración del entorno
 - 📁 [**Estructura del Código**](04-Estructura-Codigo) - Organización del proyecto
 - 🔐 [**Arquitectura de Autenticación**](Arquitectura-Autenticacion) - Sistema de login y roles
-- 📝 [**Registro de Usuarios por Roles**](Registro-Usuarios) - Lógica de registro
-- 🚀 [**Guía de Despliegue VPS Debian**](Guia-Despliegue) - Instalación y configuración
 
 ### 🔄 Ciclos de Vida
 

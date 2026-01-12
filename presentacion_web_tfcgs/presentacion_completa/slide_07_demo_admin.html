@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #2F4F4F; }
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 40% 60%;
+        }
+        .content-side {
+            padding: 60px 30px 30px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: #F9FAFB;
+            border-right: 1px solid #E5E7EB;
+        }
+        .image-side {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #FFFFFF;
+            height: 720px;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 40px;
+            font-weight: 700;
+            color: #0047AB;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+        .feature-item {
+            margin-bottom: 25px;
+            padding-left: 15px;
+            border-left: 4px solid #10B981;
+        }
+        .feature-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 6px;
+        }
+        .feature-desc {
+            font-size: 17px;
+            color: #4B5563;
+            line-height: 1.4;
+        }
+        .screenshots-grid {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .screenshot-container {
+            flex: 1;
+            min-height: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: #f0f0f0;
+        }
+        .screenshot {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="content-side">
+            <h1>El Administrador: Control Total</h1>
+            
+            <div class="feature-item">
+                <div class="feature-title">Gestión de Tutores</div>
+                <div class="feature-desc">Administración centralizada de roles docentes y resolución de incidencias de acceso.</div>
+            </div>
+            
+            <div class="feature-item">
+                <div class="feature-title">Acceso a Servicios</div>
+                <div class="feature-desc">Control directo sobre la infraestructura de Supabase y el servicio de correos Resend.</div>
+            </div>
+            
+            <div class="feature-item">
+                <div class="feature-title">Configuración Global</div>
+                <div class="feature-desc">Ajustes de parámetros del sistema y gestión de usuarios polivalente.</div>
+            </div>
+        </div>
+        
+        <div class="image-side">
+            <div class="screenshots-grid">
+                <div class="screenshot-container">
+                    <img src="images/pasted_file_WYU7Hp_image.png" alt="Dashboard Admin" class="screenshot">
+                </div>
+                <div class="screenshot-container">
+                    <img src="images/Captura de pantalla 2025-12-17 203641.png" alt="Gestión de Usuarios" class="screenshot">
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-number">07</div>
+    </div>
+</body>
+</html>
