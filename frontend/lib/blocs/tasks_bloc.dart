@@ -28,6 +28,7 @@ class TaskCreateRequested extends TasksEvent {
   final int? estimatedHours;
   final DateTime? dueDate;
   final List<String> tags;
+  final List<Subtask> subtasks;
 
   const TaskCreateRequested({
     required this.projectId,
@@ -37,10 +38,20 @@ class TaskCreateRequested extends TasksEvent {
     this.estimatedHours,
     this.dueDate,
     this.tags = const [],
+    this.subtasks = const [],
   });
 
   @override
-  List<Object?> get props => [projectId, title, description, complexity, estimatedHours, dueDate, tags];
+  List<Object?> get props => [
+        projectId,
+        title,
+        description,
+        complexity,
+        estimatedHours,
+        dueDate,
+        tags,
+        subtasks,
+      ];
 }
 
 class TaskUpdateRequested extends TasksEvent {
@@ -178,6 +189,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
         estimatedHours: event.estimatedHours,
         dueDate: event.dueDate,
         tags: event.tags,
+        subtasks: event.subtasks,
       );
       
       emit(const TaskOperationSuccess('Tarea creada correctamente'));

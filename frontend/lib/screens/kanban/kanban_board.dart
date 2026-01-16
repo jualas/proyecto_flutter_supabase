@@ -351,6 +351,11 @@ class _KanbanBoardState extends State<KanbanBoard> {
                   runSpacing: 4,
                   children: [
                     _buildComplexityChip(task.complexity),
+                    if (task.hasSubtasks)
+                      _buildInfoChip(
+                        '${task.subtasksDoneCount}/${task.subtasksTotalCount}',
+                        Icons.checklist,
+                      ),
                     if (task.estimatedHours != null)
                       _buildInfoChip('${task.estimatedHours}h', Icons.schedule),
                     ...task.tags.take(2).map((tag) => _buildTagChip(tag)),
@@ -711,6 +716,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                   estimatedHours: task.estimatedHours,
                   dueDate: task.dueDate,
                   tags: task.tags,
+                  subtasks: task.subtasks,
                 ),
               );
               Navigator.of(dialogContext).pop();

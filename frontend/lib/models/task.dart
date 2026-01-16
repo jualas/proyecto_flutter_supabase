@@ -2,6 +2,36 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'task.g.dart';
 
+/// Subtarea (ítem de checklist) dentro de una tarea madre.
+@JsonSerializable()
+class Subtask {
+  final int id;
+  final String title;
+  @JsonKey(name: 'isDone', defaultValue: false)
+  final bool isDone;
+
+  const Subtask({
+    required this.id,
+    required this.title,
+    this.isDone = false,
+  });
+
+  factory Subtask.fromJson(Map<String, dynamic> json) => _$SubtaskFromJson(json);
+  Map<String, dynamic> toJson() => _$SubtaskToJson(this);
+
+  Subtask copyWith({
+    int? id,
+    String? title,
+    bool? isDone,
+  }) {
+    return Subtask(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isDone: isDone ?? this.isDone,
+    );
+  }
+}
+
 /// Modelo que representa una tarea en el sistema de gestión personal.
 @JsonSerializable()
 class Task {
@@ -19,6 +49,8 @@ class Task {
   final int? estimatedHours;
   final TaskComplexity complexity;
   final List<String> tags;
+  @JsonKey(defaultValue: <Subtask>[])
+  final List<Subtask> subtasks;
   @JsonKey(name: 'createdAt')
   final DateTime createdAt;
   @JsonKey(name: 'updatedAt')
@@ -35,12 +67,17 @@ class Task {
     this.estimatedHours,
     required this.complexity,
     required this.tags,
+    this.subtasks = const [],
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
   Map<String, dynamic> toJson() => _$TaskToJson(this);
+
+  bool get hasSubtasks => subtasks.isNotEmpty;
+  int get subtasksTotalCount => subtasks.length;
+  int get subtasksDoneCount => subtasks.where((s) => s.isDone).length;
 
   Task copyWith({
     int? id,
@@ -53,6 +90,7 @@ class Task {
     int? estimatedHours,
     TaskComplexity? complexity,
     List<String>? tags,
+    List<Subtask>? subtasks,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -67,6 +105,7 @@ class Task {
       estimatedHours: estimatedHours ?? this.estimatedHours,
       complexity: complexity ?? this.complexity,
       tags: tags ?? this.tags,
+      subtasks: subtasks ?? this.subtasks,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -84,6 +123,7 @@ class Task {
     int? estimatedHours,
     TaskComplexity complexity = TaskComplexity.simple,
     List<String> tags = const [],
+    List<Subtask> subtasks = const [],
   }) {
     final now = DateTime.now();
     return Task(
@@ -97,6 +137,7 @@ class Task {
       estimatedHours: estimatedHours,
       complexity: complexity,
       tags: tags,
+      subtasks: subtasks,
       createdAt: now,
       updatedAt: now,
     );

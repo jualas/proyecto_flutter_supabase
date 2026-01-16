@@ -198,7 +198,7 @@ class AppTheme {
       ),
       
       // Cards
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.backgroundSecondary,
         elevation: 2,
         shadowColor: AppColors.textPrimary.withValues(alpha: 0.1),
@@ -311,7 +311,7 @@ class AppTheme {
       ),
       
       // Dialogs
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.backgroundPrimary,
         elevation: 8,
         shape: RoundedRectangleBorder(

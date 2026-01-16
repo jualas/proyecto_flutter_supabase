@@ -262,6 +262,19 @@ class _TasksListState extends State<TasksList> {
               runSpacing: 4,
               children: [
                 _buildComplexityChip(task.complexity),
+                if (task.hasSubtasks)
+                  Chip(
+                    avatar: const Icon(Icons.checklist, size: 16, color: AppColors.accentPrimary),
+                    label: Text('${task.subtasksDoneCount}/${task.subtasksTotalCount}'),
+                    backgroundColor: AppColors.accentSecondary.withValues(alpha: 0.2),
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.accentPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
                 if (task.estimatedHours != null)
                   Chip(
                     label: Text('${task.estimatedHours}h'),
@@ -481,6 +494,7 @@ class _TasksListState extends State<TasksList> {
                   estimatedHours: task.estimatedHours,
                   dueDate: task.dueDate,
                   tags: task.tags,
+                  subtasks: task.subtasks,
                 ),
               );
               Navigator.of(dialogContext).pop();

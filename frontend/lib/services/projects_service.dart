@@ -1,20 +1,20 @@
 import '../models/models.dart';
-import 'storage_service.dart';
+import 'taskboard_data_source.dart';
 
 /// Servicio para la gestión de proyectos.
 class ProjectsService {
-  final StorageService _storageService;
+  final TaskboardDataSource _dataSource;
 
-  ProjectsService(this._storageService);
+  ProjectsService(this._dataSource);
 
   /// Obtiene todos los proyectos
   Future<List<Project>> getProjects() async {
-    return await _storageService.getProjects();
+    return await _dataSource.getProjects();
   }
 
   /// Obtiene un proyecto por ID
   Future<Project?> getProject(int id) async {
-    return await _storageService.getProject(id);
+    return await _dataSource.getProject(id);
   }
 
   /// Crea un nuevo proyecto
@@ -23,29 +23,29 @@ class ProjectsService {
     String description = '',
     ProjectStatus status = ProjectStatus.planning,
   }) async {
-    final id = await _storageService.getNextProjectId();
+    final id = await _dataSource.getNextProjectId();
     final project = Project.create(
       id: id,
       title: title,
       description: description,
       status: status,
     );
-    return await _storageService.saveProject(project);
+    return await _dataSource.saveProject(project);
   }
 
   /// Actualiza un proyecto existente
   Future<Project> updateProject(Project project) async {
-    return await _storageService.saveProject(project);
+    return await _dataSource.saveProject(project);
   }
 
   /// Elimina un proyecto y todas sus tareas
   Future<void> deleteProject(int id) async {
-    await _storageService.deleteProject(id);
+    await _dataSource.deleteProject(id);
   }
 
   /// Cambia el estado de un proyecto
   Future<Project> updateProjectStatus(int id, ProjectStatus status) async {
-    final project = await _storageService.getProject(id);
+    final project = await _dataSource.getProject(id);
     if (project == null) {
       throw Exception('Proyecto no encontrado');
     }
@@ -54,12 +54,12 @@ class ProjectsService {
       status: status,
       updatedAt: DateTime.now(),
     );
-    return await _storageService.saveProject(updatedProject);
+    return await _dataSource.saveProject(updatedProject);
   }
 
   /// Obtiene estadísticas de un proyecto
   Future<ProjectStats> getProjectStats(int projectId) async {
-    final tasks = await _storageService.getTasksByProject(projectId);
+    final tasks = await _dataSource.getTasksByProject(projectId);
     
     final totalTasks = tasks.length;
     final completedTasks = tasks.where((t) => t.status == TaskStatus.completed).length;

@@ -2,17 +2,16 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import 'taskboard_data_source.dart';
 
 /// Servicio para la gestión del almacenamiento de datos en JSON.
 /// 
 /// Utiliza SharedPreferences para persistir los datos localmente,
 /// con datos iniciales cargados desde assets.
-class StorageService {
-  static const String _configKey = 'app_config';
+class StorageService implements TaskboardDataSource {
   static const String _dataKey = 'app_data';
   
   SharedPreferences? _prefs;
-  AppConfig? _cachedConfig;
   AppData? _cachedData;
 
   /// Inicializa el servicio de almacenamiento
@@ -23,13 +22,7 @@ class StorageService {
 
   /// Carga los datos iniciales si no existen
   Future<void> _loadInitialData() async {
-    // Cargar configuración
-    if (!_prefs!.containsKey(_configKey)) {
-      final configJson = await rootBundle.loadString('assets/data/config.json');
-      await _prefs!.setString(_configKey, configJson);
-    }
-    
-    // Cargar datos
+    // Cargar datos (solo si no existen)
     if (!_prefs!.containsKey(_dataKey)) {
       final dataJson = await rootBundle.loadString('assets/data/data.json');
       await _prefs!.setString(_dataKey, dataJson);
@@ -37,17 +30,11 @@ class StorageService {
   }
 
   /// Obtiene la configuración de la aplicación
+  /// Siempre lee directamente del archivo (sin caché)
   Future<AppConfig> getConfig() async {
-    if (_cachedConfig != null) return _cachedConfig!;
-    
-    final jsonStr = _prefs!.getString(_configKey);
-    if (jsonStr == null) {
-      throw Exception('No se encontró la configuración');
-    }
-    
-    final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-    _cachedConfig = AppConfig.fromJson(json);
-    return _cachedConfig!;
+    final configJson = await rootBundle.loadString('assets/data/config.json');
+    final json = jsonDecode(configJson) as Map<String, dynamic>;
+    return AppConfig.fromJson(json);
   }
 
   /// Obtiene todos los datos de la aplicación
@@ -176,7 +163,6 @@ class StorageService {
 
   /// Limpia la caché
   void clearCache() {
-    _cachedConfig = null;
     _cachedData = null;
   }
 

@@ -48,6 +48,10 @@
       "estimatedHours": 24,
       "dueDate": "2026-01-30T00:00:00.000Z",
       "tags": ["desarrollo", "core"],
+      "subtasks": [
+        { "id": 1, "title": "Definir framework backend (Supabase)", "isDone": false },
+        { "id": 2, "title": "Diseñar esquema inicial de datos", "isDone": false }
+      ],
       "kanbanPosition": 1.0,
       "createdAt": "2026-01-12T00:00:00.000Z",
       "updatedAt": "2026-01-12T00:00:00.000Z"

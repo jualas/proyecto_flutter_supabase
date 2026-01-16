@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../themes/app_theme.dart';
@@ -28,6 +29,7 @@ class _TaskFormState extends State<TaskForm> {
   TaskStatus _status = TaskStatus.pending;
   TaskComplexity _complexity = TaskComplexity.simple;
   DateTime? _dueDate;
+  late List<Subtask> _subtasks;
 
   bool get _isEditing => widget.task != null;
 
@@ -42,6 +44,7 @@ class _TaskFormState extends State<TaskForm> {
     _tagsController = TextEditingController(
       text: widget.task?.tags.join(', ') ?? '',
     );
+    _subtasks = List<Subtask>.from(widget.task?.subtasks ?? const []);
     
     if (widget.task != null) {
       _status = widget.task!.status;
@@ -84,12 +87,187 @@ class _TaskFormState extends State<TaskForm> {
         estimatedHours: estimatedHours,
         complexity: _complexity,
         tags: tags,
+        subtasks: _subtasks,
         createdAt: widget.task?.createdAt ?? now,
         updatedAt: now,
       );
 
       widget.onSave(task);
     }
+  }
+
+  int _nextSubtaskId() {
+    if (_subtasks.isEmpty) return 1;
+    final maxId = _subtasks.map((s) => s.id).reduce(max);
+    return maxId + 1;
+  }
+
+  Future<String?> _promptSubtaskTitle({
+    required String dialogTitle,
+    String initialValue = '',
+  }) async {
+    final controller = TextEditingController(text: initialValue);
+    String? result;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogTitle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Título',
+            hintText: 'Ej: Preparar endpoint / crear tabla',
+          ),
+          onSubmitted: (_) => Navigator.of(dialogContext).pop(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
+
+    final title = controller.text.trim();
+    if (title.isEmpty) return null;
+    result = title;
+    return result;
+  }
+
+  Future<void> _addSubtask() async {
+    final title = await _promptSubtaskTitle(dialogTitle: 'Nueva subtarea');
+    if (title == null) return;
+
+    setState(() {
+      _subtasks = [
+        ..._subtasks,
+        Subtask(id: _nextSubtaskId(), title: title, isDone: false),
+      ];
+    });
+  }
+
+  Future<void> _editSubtask(Subtask subtask) async {
+    final title = await _promptSubtaskTitle(
+      dialogTitle: 'Editar subtarea',
+      initialValue: subtask.title,
+    );
+    if (title == null) return;
+
+    setState(() {
+      _subtasks = _subtasks
+          .map((s) => s.id == subtask.id ? s.copyWith(title: title) : s)
+          .toList();
+    });
+  }
+
+  void _toggleSubtask(Subtask subtask, bool isDone) {
+    setState(() {
+      _subtasks = _subtasks
+          .map((s) => s.id == subtask.id ? s.copyWith(isDone: isDone) : s)
+          .toList();
+    });
+  }
+
+  void _deleteSubtask(Subtask subtask) {
+    setState(() {
+      _subtasks = _subtasks.where((s) => s.id != subtask.id).toList();
+    });
+  }
+
+  Widget _buildChecklistSection() {
+    final done = _subtasks.where((s) => s.isDone).length;
+    final total = _subtasks.length;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.textSecondary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.checklist, color: AppColors.textSecondary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  total > 0 ? 'Checklist ($done/$total)' : 'Checklist',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Añadir subtarea',
+                onPressed: _addSubtask,
+                icon: const Icon(Icons.add),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_subtasks.isEmpty)
+            Text(
+              'Añade subtareas para poder marcarlas con un check.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            )
+          else
+            ..._subtasks.map((subtask) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundPrimary,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.textSecondary.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: subtask.isDone,
+                      onChanged: (value) => _toggleSubtask(subtask, value ?? false),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        subtask.title,
+                        style: TextStyle(
+                          decoration: subtask.isDone ? TextDecoration.lineThrough : null,
+                          color: subtask.isDone ? AppColors.textSecondary : AppColors.textPrimary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Editar',
+                      onPressed: () => _editSubtask(subtask),
+                      icon: const Icon(Icons.edit, size: 18),
+                    ),
+                    IconButton(
+                      tooltip: 'Eliminar',
+                      onPressed: () => _deleteSubtask(subtask),
+                      icon: const Icon(Icons.delete, size: 18, color: AppColors.error),
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
   }
 
   Future<void> _selectDate() async {
@@ -284,6 +462,10 @@ class _TaskFormState extends State<TaskForm> {
                   prefixIcon: Icon(Icons.label),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Checklist / Subtareas
+              _buildChecklistSection(),
               const SizedBox(height: 24),
               
               // Botones

@@ -1,20 +1,20 @@
 import '../models/models.dart';
-import 'storage_service.dart';
+import 'taskboard_data_source.dart';
 
 /// Servicio para la gestión de tareas y sistema Kanban.
 class TasksService {
-  final StorageService _storageService;
+  final TaskboardDataSource _dataSource;
 
-  TasksService(this._storageService);
+  TasksService(this._dataSource);
 
   /// Obtiene todas las tareas
   Future<List<Task>> getTasks() async {
-    return await _storageService.getTasks();
+    return await _dataSource.getTasks();
   }
 
   /// Obtiene las tareas de un proyecto
   Future<List<Task>> getTasksByProject(int projectId) async {
-    final tasks = await _storageService.getTasksByProject(projectId);
+    final tasks = await _dataSource.getTasksByProject(projectId);
     // Ordenar por posición Kanban
     tasks.sort((a, b) => a.kanbanPosition.compareTo(b.kanbanPosition));
     return tasks;
@@ -22,7 +22,7 @@ class TasksService {
 
   /// Obtiene una tarea por ID
   Future<Task?> getTask(int id) async {
-    return await _storageService.getTask(id);
+    return await _dataSource.getTask(id);
   }
 
   /// Crea una nueva tarea
@@ -35,8 +35,9 @@ class TasksService {
     int? estimatedHours,
     TaskComplexity complexity = TaskComplexity.simple,
     List<String> tags = const [],
+    List<Subtask> subtasks = const [],
   }) async {
-    final id = await _storageService.getNextTaskId();
+    final id = await _dataSource.getNextTaskId();
     
     // Calcular la posición Kanban (al final de la columna)
     final projectTasks = await getTasksByProject(projectId);
@@ -56,24 +57,25 @@ class TasksService {
       estimatedHours: estimatedHours,
       complexity: complexity,
       tags: tags,
+      subtasks: subtasks,
     );
     
-    return await _storageService.saveTask(task);
+    return await _dataSource.saveTask(task);
   }
 
   /// Actualiza una tarea existente
   Future<Task> updateTask(Task task) async {
-    return await _storageService.saveTask(task);
+    return await _dataSource.saveTask(task);
   }
 
   /// Elimina una tarea
   Future<void> deleteTask(int id) async {
-    await _storageService.deleteTask(id);
+    await _dataSource.deleteTask(id);
   }
 
   /// Cambia el estado de una tarea
   Future<Task> updateTaskStatus(int id, TaskStatus status) async {
-    final task = await _storageService.getTask(id);
+    final task = await _dataSource.getTask(id);
     if (task == null) {
       throw Exception('Tarea no encontrada');
     }
@@ -93,7 +95,7 @@ class TasksService {
       updatedAt: DateTime.now(),
     );
     
-    return await _storageService.saveTask(updatedTask);
+    return await _dataSource.saveTask(updatedTask);
   }
 
   /// Mueve una tarea en el Kanban (cambio de columna y/o posición)
@@ -102,7 +104,7 @@ class TasksService {
     required TaskStatus newStatus,
     required int targetIndex,
   }) async {
-    final task = await _storageService.getTask(taskId);
+    final task = await _dataSource.getTask(taskId);
     if (task == null) {
       throw Exception('Tarea no encontrada');
     }
@@ -138,7 +140,7 @@ class TasksService {
       updatedAt: DateTime.now(),
     );
 
-    return await _storageService.saveTask(updatedTask);
+    return await _dataSource.saveTask(updatedTask);
   }
 
   /// Obtiene tareas por estado
@@ -180,7 +182,7 @@ class TasksService {
       for (int i = 0; i < statusTasks.length; i++) {
         final task = statusTasks[i];
         if (task.kanbanPosition != (i + 1).toDouble()) {
-          await _storageService.saveTask(
+          await _dataSource.saveTask(
             task.copyWith(kanbanPosition: (i + 1).toDouble()),
           );
         }

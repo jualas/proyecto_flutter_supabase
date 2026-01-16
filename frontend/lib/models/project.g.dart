@@ -7,22 +7,22 @@ part of 'project.dart';
 // **************************************************************************
 
 Project _$ProjectFromJson(Map<String, dynamic> json) => Project(
-      id: (json['id'] as num).toInt(),
-      title: json['title'] as String,
-      description: json['description'] as String,
-      status: $enumDecode(_$ProjectStatusEnumMap, json['status']),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-    );
+  id: (json['id'] as num).toInt(),
+  title: json['title'] as String,
+  description: json['description'] as String,
+  status: $enumDecode(_$ProjectStatusEnumMap, json['status']),
+  createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+);
 
 Map<String, dynamic> _$ProjectToJson(Project instance) => <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'description': instance.description,
-      'status': _$ProjectStatusEnumMap[instance.status]!,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-    };
+  'id': instance.id,
+  'title': instance.title,
+  'description': instance.description,
+  'status': _$ProjectStatusEnumMap[instance.status]!,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'updatedAt': instance.updatedAt.toIso8601String(),
+};
 
 const _$ProjectStatusEnumMap = {
   ProjectStatus.planning: 'planning',
@@ -30,18 +30,3 @@ const _$ProjectStatusEnumMap = {
   ProjectStatus.completed: 'completed',
   ProjectStatus.archived: 'archived',
 };
-
-T $enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
-  if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () => throw ArgumentError(
-      '`$source` is not one of the supported values: '
-      '${enumValues.values.join(', ')}',
-    ),
-  ).key;
-}

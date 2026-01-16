@@ -1,6 +1,18 @@
 {
-  "user": {
-    "email": "jualas@jualas.es",
-    "password": "cambiar_esta_password"
-  }
+  "supabase": {
+    "url": "",
+    "anonKey": ""
+  },
+  "users": [
+    {
+      "email": "jualas@jualas.es",
+      "password": "Cartagena2026!",
+      "name": "Jualas"
+    },
+    {
+      "email": "pichidamn@gmail.com",
+      "password": "Cartagena2026!",
+      "name": "Diego"
+    }
+  ]
 }
