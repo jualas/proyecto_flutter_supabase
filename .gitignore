@@ -77,3 +77,26 @@ frontend/lib/config/app_config_local.dart
 # Backup de credenciales (ya no necesario, pero por si acaso)
 .git/credentials_backup.json
 
+
+# --- seguridad (secure-repo) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+.cursor/mcp.json
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+__pycache__/
+*.pyc
+trivy*.sarif
+gitleaks-report*.json
