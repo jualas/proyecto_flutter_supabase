@@ -100,3 +100,6 @@ __pycache__/
 *.pyc
 trivy*.sarif
 gitleaks-report*.json
+
+# Copia temporal de la wiki (era un submódulo roto sin .gitmodules)
+wiki_setup/wiki_temp/
