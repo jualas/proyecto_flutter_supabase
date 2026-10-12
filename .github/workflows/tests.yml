@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
@@ -60,7 +60,7 @@ jobs:
       run: flutter test --coverage
     
     - name: Upload coverage to Codecov (optional)
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v7
       with:
         file: ./frontend/coverage/lcov.info
         flags: unittests
