@@ -33,15 +33,15 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   supabase_flutter: ^2.10.0
   supabase: ^2.1.5
   flutter_bloc: ^9.1.1
-  go_router: ^16.2.0
+  go_router: ^18.1.1
   json_annotation: ^4.9.0
   json_serializable: ^6.11.0
   universal_platform: ^1.1.0
-  app_links: ^6.3.3  # Deep links para desktop/mobile
+  app_links: ^7.2.2  # Deep links para desktop/mobile
   
   # Internacionalización
   flutter_localizations:
@@ -49,28 +49,28 @@ dependencies:
   intl: ^0.20.2
   
   # Persistencia de datos
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.6
   
   # Calendario
-  table_calendar: ^3.1.2
+  table_calendar: ^3.3.0
   
   # Generación de PDFs
-  pdf: ^3.10.7
+  pdf: ^3.13.1
   printing: ^5.12.0
-  path_provider: ^2.1.2
-  equatable: ^2.0.7
+  path_provider: ^2.1.6
+  equatable: ^3.0.0
   
   # Manejo de archivos
-  file_picker: ^8.1.6
-  url_launcher: ^6.3.1
-  http: ^1.2.2
+  file_picker: ^11.0.3
+  url_launcher: ^6.3.3
+  http: ^1.6.0
   
   # Manejo de permisos
-  permission_handler: ^11.3.1
-  device_info_plus: ^10.1.2
+  permission_handler: ^13.0.2
+  device_info_plus: ^12.4.0
   
   # Renderizado de Markdown
-  flutter_markdown: ^0.6.18
+  flutter_markdown: ^0.7.7+1
 
 dev_dependencies:
   flutter_test:
@@ -81,18 +81,18 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   
   # Testing dependencies
   bloc_test: ^10.0.0
   mockito: ^5.4.4
-  mocktail: ^1.0.3
-  build_runner: ^2.7.0
+  mocktail: ^1.0.5
+  build_runner: ^2.16.1
   integration_test:
     sdk: flutter
   
   # Splash screen
-  flutter_native_splash: ^2.3.5
+  flutter_native_splash: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
